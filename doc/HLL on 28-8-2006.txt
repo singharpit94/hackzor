@@ -1,0 +1,54 @@
+ 
+                                     
+               Design Objectives for Hackzor Version 0.10
+               ******************************************
+                     Ravi Shankar   Prashanth Mohan
+                     ==============================
+                            August 28, 2006 
+                            ================
+  	
+
+0.1  Objectives
+===============
+   	The following modules will be implemented in version 0.10
+  
+  	
+ 		Registeration		   : With Minimal database design 
+ 		Code Submission		 : Full Implementation          
+ 		Compilation 		    : Optional Phase               
+ 		Evaluation 		     : Support All Languages        
+ 	                   
+   	
+
+0.2  Modules
+============
+   		It has been decided that Version 0.10 will have support for a
+single Web sever with Multiple Evaluators that connect to it.
+  	
+
+0.2.1  Server Side
+------------------
+   		
+  			
+ - Get the File 			
+ - Add to queue with meta data 			
+ - Wait for Evaluators 			
+ - UpdateDb with Results 		
+   	
+
+0.2.2  Evaluator
+----------------
+   		Evaluators will probably use some Encryption method to authenticate
+themselves with the Web Server.
+  		
+  			
+ - Connect to the Web Server 			
+ - Choose the Job. The server is a passive member here and the Evaluator
+   decides which job it will take up. 			
+ - Compile if necessary 			
+ - Execute 			
+ - Log any info 			
+ - Compare with author solution - It has been decided that the author
+   would provide the solutions as Python RegEx for now, But this
+   decision may change in the future 			
+ - Return results 		
