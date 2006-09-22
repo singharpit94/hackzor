@@ -1,0 +1,13 @@
+Date 22/09/2006
+In . added :
+
+doc/
+hackzor/
+__init__.py
+__init__.pyc
+judge/
+manage.py
+settings.py
+settings.pyc
+urls.py
+urls.pyc
