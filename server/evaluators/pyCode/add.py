@@ -1,15 +1,15 @@
 
 
 def isMatch(inFileName, outFileName):
-	inFile 	= open(inFileName, 'r')
+	inFile = open(inFileName, 'r')
 	outFile	= open(outFileName, 'r') 
 	
-	ins	 = inFile.read().strip().split('\n')
-	outs 	 = outFile.read().split('\n')
+	ins = inFile.read().strip().split('\n')
+	outs = outFile.read().split('\n')
 
 	for i in range(len(ins)):
 		[ai, bi] = ins[i].split()
-		ci	 = outs[i]
+		ci = outs[i]
 		if (int(ai) + int(bi) == int(ci)):
 			print ai, bi, ci, True
 		else:
