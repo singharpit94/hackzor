@@ -1,6 +1,7 @@
 from django.db import models
 
 class User(models.Model):
+	""" Contains details about the user """
 	def __str__(self):
 		return self.alias
 	fullName = models.CharField(maxlength=32)
@@ -11,24 +12,20 @@ class User(models.Model):
 	class Admin: pass
 
 class Question(models.Model):
+	""" Contains the question content and path to evaluators and test cases """
 	def __str__(self):
 		return self.name
 	name = models.CharField(maxlength=32)
 	text = models.TextField()
-	testInput = models.FilePathField(path='/home/rave/Django/hackzor/'
-                                     + 'judge/evaluators/testCases',
-                                     recursive=True)
-	testOutput = models.FilePathField(path='/home/rave/Django/hackzor/'
-                                      + 'judge/evaluators/testCases',
-                                      recursive=True)
-	evaluatorPath   = models.FilePathField(path='/home/rave/Django/'
-                                           + 'hackzor/judge/evaluators/pyCode',
-                                           recursive=True)
+	testInput = models.FileField(upload_to = 'server/evaluators/testCases')
+	testOutput = models.FileField(upload_to= 'server/evaluators/testCases/')
+	evaluatorPath   = models.FileField(upload_to = 'server/evaluators/pyCode/')
 	class Admin: pass
 
 class Attempt(models.Model):
+	""" Contains Attempt Information """
 	def __str__(self):
-		return self.user.alias
+		return self.user.alias + ' :' + self.question.name 
 	user = models.ForeignKey(User)
 	question = models.ForeignKey(Question)
 	attemptNumber = models.PositiveIntegerField()

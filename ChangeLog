@@ -1,3 +1,16 @@
+2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
+
+	* settings.py: 
+	(MEDIA_ROOT): Changed from '' to 'home/rave/Django/hackzor'
+	(MEDIA_URL):  Changed from '' to '/'
+	(TEMPLATE_DIRS): Added '/home/rave/Django/hackzor/server/templates'
+
+	* urls.py: 
+	(urlpatterns):  Added translation for urls starting with OPC to be
+			mapped to server.urls
+			Added static serve module to serve normal files( For
+			use Until Development only! REMOVE BEFORE DEPLOYMENT)
+
 2006-09-22  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* Changelog: renamed judge app to server. Applied miscellaneous fixes
