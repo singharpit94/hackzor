@@ -1,3 +1,10 @@
+2006-10-04  Ravi Shankar <ravehanker@gmail.com>
+	* views.py:
+		Added the viewProblem view
+	* urls.py:
+		Made changes to include viewProblem in the place of 
+		generic	view for '^problems/(?P<id>\d+)/$'
+
 2006-09-24  Ravi Shankar <ravehanker@gmail.com>
 
 	* models.py: 
