@@ -6,4 +6,13 @@
 	<h1> {{object.name}} </h1>
 	<p>
 	{{object.text}}
+	<p>
+	<table>
+		{% for i in testCase %}
+			<tr>
+				<td> {{ i.0 }} </td>
+				<td> {{ i.1 }} </td>
+			</tr>
+		{% endfor %}
+	</table>
 {% endblock %}
