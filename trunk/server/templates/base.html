@@ -26,9 +26,11 @@
 					<div  id="sidebar">
 						{% block topbar%}	
 							<ul>
-								<li><a href='/opc/'>Home</a><br>
-								<li><a href='/opc/problems/'>Problem set</a>
-								<li><a href='/opc/admin/'>Admin Login</a>
+								<li><a href='/opc'>Home</a><br>
+								<li><a href='problems/'>Problem set</a>
+                                {% if not logged %}
+								<li><a href='admin/'>Admin Login</a>
+                                {% endif %}
 							</ul>
 						{% endblock %}
 					</div>

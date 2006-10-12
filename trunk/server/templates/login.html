@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+<!-- CRAP WARNING: CHANGE -->
+{% block content %}
+{% if has_account %}
+<p>You are already registered you freak!</p>
+{% else %} {% if login_fail %}
+<p>Log In failed</p>
+{% else %} {% if login_success %}
+<p>Log In Succeeded</p>
+{% else %}
+<form name="LoginForm" method="POST" action=".">
+    <table>
+       <tr>
+          <td><label for="id_username">UserName: </label></td>
+          <td>{{ form.username }}</td>
+       </tr>
+       <tr>
+          <td><label for="id_password">Password: </label></td>
+          <td>{{ form.password }}</td>
+       </tr>
+       <tr>
+         <td colspan=2><input type="submit" value="Register"></td>
+       </tr>
+   </table>
+</form>   
+{% endif %}
+{% endif %}
+{% endif %}
+{% endblock %}

@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+<!-- CRAP WARNING: CHANGE -->
+{% block content %}
+{% if has_account %}
+<p>You are already registered you freak!</p>
+{% else %}
+<form name="RegistrationForm" method="POST" action=".">
+    <table>
+       <tr>
+          <td><label for="id_username">Enter UserName: </label></td>
+          <td>{{ form.username }}</td>
+       </tr>
+       <tr>
+          <td><label for="id_email">Enter Email: </label></td>
+          <td>{{ form.email }}</td>
+       </tr>
+       <tr>
+          <td><label for="id_password1">Enter Password: </label></td>
+          <td>{{ form.password1 }}</td>
+       </tr>
+       <tr>
+          <td><lable for="id_password2">Re-Enter Password: </label></td>
+          <td>{{ form.password2 }}</td>
+       </tr>
+       <tr>
+          <td><lable for="id_first_name">First Name: </label></td>
+          <td>{{ form.first_name }}</td>
+       </tr>
+       <tr>
+          <td><lable for="id_last_name">Last Name: </label></td>
+          <td>{{ form.last_name }}</td>
+       </tr>
+       <tr>
+         <td colspan=2><input type="submit" value="Register"></td>
+       </tr>
+    </table>
+</form>
+{% endif %}
+{% endblock %}
