@@ -2,7 +2,7 @@
 
 {% block title %} {{ block.super }} - Problem Set {% endblock %}
 
-{% block content %} 
+{% block content %}
 	<ul>
 		{% for obj in object_list %}
 			<li> <a href="/opc/problems/{{obj.id}}/">{{ obj.name }} </a>

@@ -18,7 +18,7 @@ DATABASE_PORT = ''             # Set to empty string for default. Not used with 
 
 # Local time zone for this installation. All choices can be found here:
 # http://www.postgresql.org/docs/current/static/datetime-keywords.html#DATETIME-TIMEZONE-SET-TABLE
-TIME_ZONE = 'America/Chicago'
+TIME_ZONE = 'Asia/Calcutta'
 
 # Language code for this installation. All choices can be found here:
 # http://www.w3.org/TR/REC-html40/struct/dirlang.html#langcodes
@@ -29,7 +29,7 @@ SITE_ID = 1
 
 # Absolute path to the directory that holds media.
 # Example: "/home/media/media.lawrence.com/"
-MEDIA_ROOT = '/home/rave/Django/hackzor'
+MEDIA_ROOT = 'media'
 
 # URL that handles the media served from MEDIA_ROOT.
 # Example: "http://media.lawrence.com"
@@ -62,7 +62,7 @@ ROOT_URLCONF = 'hackzor.urls'
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
-    '/home/rave/Django/hackzor/server/template',
+    'hackzor/server/template',
 )
 
 INSTALLED_APPS = (
@@ -73,3 +73,5 @@ INSTALLED_APPS = (
     'django.contrib.admin',
     'hackzor.server',
 )
+
+AUTH_PROFILE_MODULE = 'server.UserProfile' 

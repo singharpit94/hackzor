@@ -1,22 +1,45 @@
-2006-10-04  Ravi Shankar <ravehanker@gmail.com>
-	* views.py:
-		Added the viewProblem view
-	* urls.py:
-		Made changes to include viewProblem in the place of 
-		generic	view for '^problems/(?P<id>\d+)/$'
+2006-10-13  Prashanth Mohan  <prashmohan@gmail.com>
 
+	* forms.py (LoginForm): Added a Login form
+
+	* views.py (login): Added some initial login functionality. It is
+	NOT complete.
+
+	* urls.py (urlpatterns): Added registration URL pattern
+
+	* views.py (register): Added Registration View. Sends email to
+	user to confirm registration
+	(confirm): Registration Confirmation view added. Checks if
+	confirmation link is accessed within time frame
+
+	* models.py (UserProfile.activation_key): Extends the User
+	model. Contains the activation key and expiry date
+
+	* forms.py (RegistrationForm): Added a registration form
+	(RegistrationForm.isValidUsername): username uniqueness
+	(RegistrationForm.isValidEmail): Only 1 id per email id
+
+2006-10-11  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* models.py: Cleaned up some formatting, changed tabs to spaces
+
+	* urls.py (urlpatterns): Moved admin interface rule to main
+	hackzor/urls.py
+
+2006-10-04  Ravi Shankar <ravehanker@gmail.com>
+	* views.py: Added the viewProblem view
+	* urls.py: Made changes to include viewProblem in the place of
+	generic view for '^problems/(?P<id>\d+)/$'
+	
 2006-09-24  Ravi Shankar <ravehanker@gmail.com>
 
-	* models.py: 
-		Added doc strings to models
-
-		(Question.testInput, Question.testOutput): Changed from
-		FilePathField to FileField with files uploaded to
-		'/server/evaluators/testCases'
-	 	Modified testInput, testOutput and evaluatorPath in class Question
-		(Question.evaluatorPath): Changed from
-		FilePathField to FileField with files uploaded to
-		'/server/evaluators/pyCode'
+	* models.py: Added doc strings to models
+	(Question.testInput, Question.testOutput): Changed from
+	FilePathField to FileField with files uploaded to
+	'/server/evaluators/testCases' Modified testInput, testOutput and
+	evaluatorPath in class Question
+	(Question.evaluatorPath): Changed from FilePathField to FileField
+	with files uploaded to '/server/evaluators/pyCode'
 
 	* (Attempt.__str__) : Changed from 'self.user.alias' to
 	"self.user.alias + ':' + self.question.name"
@@ -25,7 +48,7 @@
 
 2006-09-22  Ravi Shankar <ravehanker@gmail.com>
 
-	* (ChangleLog): Added to build
+	* (ChangeLog): Added to build
 
 2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
 

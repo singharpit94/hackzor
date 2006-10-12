@@ -6,19 +6,31 @@ problem_dict = {
 }
 
 urlpatterns = patterns('',
+                       # To list the problem set
+                       (r'^problems/$',
+                        'django.views.generic.list_detail.object_list',
+                        dict(problem_dict, template_name='problem_set.html')),
+                       
+                       # To display a particular problem
+                       #(r'^problems/(?P<object_id>\d+)/$',
+                       #'django.views.generic.list_detail.object_detail',
+                       #dict(problem_dict, template_name='view_problem.html')),
+                       
+                       (r'^problems/(?P<id>\d+)/$',
+                        'hackzor.server.views.viewProblem'),
+                       
+                       # For now the problem set is the home page
+                       (r'^$', 'django.views.generic.list_detail.object_list',
+                       dict(problem_dict, template_name='problem_set.html')),
 
-		# To list the problem set
-    (r'^problems/$', 'django.views.generic.list_detail.object_list', dict(problem_dict, template_name='problem_set.html')),
-    		
-    		# To display a particular problem
-    #(r'^problems/(?P<object_id>\d+)/$', 'django.views.generic.list_detail.object_detail', 
-								#dict(problem_dict, template_name='view_problem.html')),
-    (r'^problems/(?P<id>\d+)/$', 'hackzor.server.views.viewProblem'), 
-	
-    		
-    		# For now the problem set is the home page
-    (r'^$', 'django.views.generic.list_detail.object_list', dict(problem_dict, template_name='problem_set.html')),
+                       # Admin Interface 
+                       #(r'^admin/', include('django.contrib.admin.urls')),
 
-		# Auto-generated admin
-    (r'^admin/', include('django.contrib.admin.urls')),
-)
+                       # Registration Page
+                       (r'^register/$',
+                        'hackzor.server.views.register'),
+
+                       # Login Page
+                       (r'^login/$',
+                        'hackzor.server.views.login'),
+                       )
