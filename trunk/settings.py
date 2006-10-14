@@ -38,6 +38,7 @@ MEDIA_URL = '/'
 # URL prefix for admin media -- CSS, JavaScript and images. Make sure to use a
 # trailing slash.
 # Examples: "http://foo.com/media/", "/media/".
+# @Prashanth: What do i make of this
 ADMIN_MEDIA_PREFIX = '/media/'
 
 # Make this unique, and don't share it with anybody.
@@ -62,7 +63,7 @@ ROOT_URLCONF = 'hackzor.urls'
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
-    'hackzor/server/template',
+    'hackzor/server/templates',
 )
 
 INSTALLED_APPS = (

@@ -1,3 +1,11 @@
+2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
+
+	* urls.py (urlpatterns): Changed static serve - document_root from to
+	'/home/rave/Django/hackzor' to '' to accomodate previous change in
+	MEDIA_ROOT and MEDIA_URL
+
+	* media: Added
+
 2006-10-13  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* urls.py (urlpatterns): Added Account confirmation URL pattern
@@ -6,8 +14,10 @@
 
 	* settings.py (TIME_ZONE): Changed to Asia/Calcutta
 	Removed some Hard coded paths
+	(MEDIA_ROOT): Changed from 'home/rave/Django/hackzor' to 'media'
 
 	* urls.py (urlpatterns): Moved admin interface here
+
 
 2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
 

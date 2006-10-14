@@ -20,9 +20,9 @@ class Question(models.Model):
         return self.name
     name = models.CharField(maxlength=32)
     text = models.TextField()
-    test_input = models.FileField(upload_to = 'server/evaluators/testCases')
-    test_output = models.FileField(upload_to= 'server/evaluators/testCases/')
-    evaluator_path = models.FileField(upload_to = 'server/evaluators/pyCode/')
+    test_input = models.FileField(upload_to = 'evaluators/testCases')
+    test_output = models.FileField(upload_to= 'evaluators/testCases/')
+    evaluator_path = models.FileField(upload_to = 'evaluators/pyCode/')
     class Admin: pass
 
 class Attempt(models.Model):
