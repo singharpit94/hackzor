@@ -1,4 +1,5 @@
 import datetime, random, sha
+import os
 from django import forms 
 from django.shortcuts import render_to_response, get_object_or_404
 from hackzor.server.models import Question
@@ -9,9 +10,11 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 
 def viewProblem (request, id):
+	import settings
+	path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
 	object = Question.objects.get(id=id)
-	inp = open(object.testInput).read().split('\n')
-	out = open(object.testOutput).read().split('\n')
+	inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
+	out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
 	testCase = [x for x in zip(inp, out)]
 	return render_to_response('view_problem.html',
                               {'object':object, 'testCase':testCase})

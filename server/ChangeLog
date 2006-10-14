@@ -1,3 +1,15 @@
+2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
+
+	* models.py (Question.test_input, Question.test_output,
+	Question.evaluator_path): changed relative
+	path from 'server/evaluators/X' to 'evaluators/X'
+
+	* views.py(viewProblem): Added path_to_media_prefix and changed values of
+	inp and out to point to the correct postions as path of media files have
+	been moved
+
+	* evaluators: Deleted
+
 2006-10-13  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* forms.py (LoginForm): Added a Login form
@@ -14,6 +26,8 @@
 
 	* models.py (UserProfile.activation_key): Extends the User
 	model. Contains the activation key and expiry date
+	(Question): changed testInput to test_input, testOutput to test_output and
+	evaluatorPath to evaluator_path
 
 	* forms.py (RegistrationForm): Added a registration form
 	(RegistrationForm.isValidUsername): username uniqueness
