@@ -22,10 +22,11 @@ def viewProblem (request, id):
     testCase = [x for x in zip(inp, out)]
     print request.user.is_authenticated()
     return render_to_response('view_problem.html',
-            {'object':object, 'testCase':testCase, 'user': request.user})
+                              {'object':object, 'testCase':testCase,
+                               'user': request.user})
 
 def register(request):
-    #TODO: Make this a decorator after cleaning up the template
+    # TODO: Make this a decorator after cleaning up the template
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
          return render_to_response('register.html', {'has_account': True})
@@ -53,11 +54,11 @@ def register(request):
 
             # Send an email with the confirmation link
             email_subject = 'Your new Hackzor account confirmation'
-            email_body = 'Hello, %s, and thanks for signing up for an Hackzor account!\n\nTo activate your account, click this link within 48 hours:\n\n http://localhost:8000/accounts/confirm/%s' % ('Hello', new_profile.activation_key)
+            email_body = 'Hello, %s, and thanks for signing up for an %s account!\n\nTo activate your account, click this link within 48 hours:\n\n http://localhost:8000/accounts/confirm/%s' % ('Hello', settings.CONTEST_NAME,new_profile.activation_key)
             
             send_mail(email_subject,
                       email_body,
-                      'hackzor@googlegroups.com',
+                      settings.CONTEST_EMAIL,
                       [new_user.email])
             
             return render_to_response('register.html', {'created': True})
@@ -114,4 +115,3 @@ def submit_code (request, problem_no=None):
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form, 'id_question_name' : problem_no, 'user':request.user})
-

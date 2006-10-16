@@ -2,8 +2,6 @@ from django.conf.urls.defaults import *
 #from django.views.static import serve
 
 urlpatterns = patterns('',
-
-
         # For now, The home page will be the OPC
         ('^$', 
             'django.views.generic.simple.redirect_to', 

@@ -1,3 +1,8 @@
+2006-10-17  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* settings.py (CONTEST_NAME, CONTEST_EMAIL): Added generic support
+	for Contest Name and Email ID
+
 2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
 	* urls.py(urlpatterns): Added default home page
 	Added redirection from '/accounts/profile' to Home Page
