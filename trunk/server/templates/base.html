@@ -28,9 +28,14 @@
 							<ul>
 								<li><a href='/opc'>Home</a><br>
 								<li><a href='/opc/problems/'>Problem set</a>
-                                {% if not logged %}
-								<li><a href='/opc/admin/'>Admin Login</a>
+
+                                {% if user.is_authenticated  %}
+                                    <li><a href='/accounts/logout'>Logout</a>
+                                {% else %}
+                                    <li><a href='/admin/'>Admin Login</a>
+                                    <li><a href='/accounts/login/'>User Login</a>
                                 {% endif %}
+
 							</ul>
 						{% endblock %}
 					</div>
