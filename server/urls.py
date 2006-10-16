@@ -7,31 +7,26 @@ problem_dict = {
 
 urlpatterns = patterns('',
 
-                       # For now the problem set is the home page
-                       (r'^$', 'django.views.generic.list_detail.object_list',
-                       dict(problem_dict, template_name='problem_set.html')),
-                       
-                       # To list the problem set
-                       # Warning : Displayes a 404 if the Question Model is empty
-                       (r'^problems/$',
-                        'django.views.generic.list_detail.object_list',
-                        dict(problem_dict, template_name='problem_set.html')),
-                       
-                       # To display a particular problem
-                       #(r'^problems/(?P<object_id>\d+)/$',
-                       #'django.views.generic.list_detail.object_detail',
-                       #dict(problem_dict, template_name='view_problem.html')),
-                       (r'^problems/(?P<id>\d+)/$',
-                        'hackzor.server.views.viewProblem'),
+        # For now the problem set is the home page
+        (r'^$', 'django.views.generic.list_detail.object_list',
+            dict(problem_dict, template_name='problem_set.html')),
 
-                       # Admin Interface 
-                       (r'^admin/', include('django.contrib.admin.urls')),
+        # To list the problem set
+        # Warning : Displayes a 404 if the Question Model is empty
+        (r'^problems/$',
+            'django.views.generic.list_detail.object_list',
+            dict(problem_dict, template_name='problem_set.html')),
 
-                       # Registration Page
-                       (r'^register/$',
-                        'hackzor.server.views.register'),
+        # To display a particular problem
+        #(r'^problems/(?P<object_id>\d+)/$',
+        #'django.views.generic.list_detail.object_detail',
+        #dict(problem_dict, template_name='view_problem.html')),
+        (r'^problems/(?P<id>\d+)/$',
+            'hackzor.server.views.viewProblem'),
 
-                       # Login Page
-                       (r'^login/$',
-                        'hackzor.server.views.login'),
-                       )
+        # Submit Solution Page
+        (r'^problems/(?P<problem_no>\d+)/submit/$',
+            'hackzor.server.views.submit_code'),
+
+        )
+

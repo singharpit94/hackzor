@@ -1,3 +1,11 @@
+2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
+	* urls.py(urlpatterns): Added default home page
+	Added redirection from '/accounts/profile' to Home Page
+	Added Login and Logout Views
+	Added Registration And Admin views
+	
+	* settings.py(TEMPLATE_CONTEXT_PROCESSORS): Added newly
+
 2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
 
 	* urls.py (urlpatterns): Changed static serve - document_root from to

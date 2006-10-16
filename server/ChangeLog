@@ -1,3 +1,27 @@
+2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
+	* views.py(viewProblem): Added Login required decorator
+	Added user object info to render_to_response dict
+	(register): Added authentication check
+	(login): removed. Will use django's login view
+	(logout_view): Added
+
+	(submit_code): Added Login required decorator
+	Fixed Upload-POST problem by adding request.FILES
+	Added Code to save all submissions in 'submits' dir with 
+	the username_probno	file name format
+
+	* models.py(Attempt.__str__): corrected 'self.user.alias' to
+	'self.user.user.username'
+	(Attempt.attempt_number): deleted
+	(Attempt.code_path): Added
+
+	* urls.py(urlpatterns): deleted admin, registeration, login views - moved to
+	'hackzor/urls.py'
+	Added Submit Solution view
+
+	* forms.py(SubmitSolution): Added
+
+
 2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
 
 	* models.py (Question.test_input, Question.test_output,
@@ -7,6 +31,7 @@
 	* views.py(viewProblem): Added path_to_media_prefix and changed values of
 	inp and out to point to the correct postions as path of media files have
 	been moved
+	(submit_code): Added
 
 	* evaluators: Deleted
 

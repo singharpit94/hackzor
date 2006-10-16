@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table> <form enctype="multipart/form-data" name="Submit" method="POST" action=".">
+
+    {% if form.file_path.errors %}
+    <tr>
+        <td>
+            *** {{ form.file_path.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td align="right"><label for="id_file_path">File Upload: </label></td>
+        <td>{{ form.file_path }} {{ form.file_path_file}} <p></td>
+    </tr>
+
+    {% if form.question_name.errors %}
+    <tr>
+        <td>
+            *** {{ form.question_name.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+            <td align="right"><label for="id_question_name">Question: </label></td>
+            <td>{{ form.question_name }}</td><p></td>
+    </tr>
+
+    <tr>
+            <td></td>
+            <td ><input type="submit" value="Submit"><p></td>
+    </tr>
+</form></table>
+
+{% endblock %}

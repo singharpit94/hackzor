@@ -1,6 +1,7 @@
 from django import forms 
 from django.core import validators 
 from django.contrib.auth.models import User
+from hackzor.server.models import Question
 
 class RegistrationForm (forms.Manipulator):
     """copied mostly from
@@ -84,4 +85,21 @@ class LoginForm (forms.Manipulator):
                                 maxlength=60,
                                 is_required=True),
             )
-        
+
+class SubmitSolution (forms.Manipulator):
+    """ Submit form that will only have a file upload field to upload the solution. 
+    The user identification will be held in the session information."""
+    def __init__ (self):
+        choices = []
+        for i in Question.objects.all():
+            choices.append( (i.id, i.name) )
+        print choices
+
+        self.fields = (
+            forms.FileUploadField(field_name='file_path',
+                        is_required=True),
+            forms.SelectField(field_name='question_name',
+                        choices=choices,
+                        is_required=True),
+            )
+

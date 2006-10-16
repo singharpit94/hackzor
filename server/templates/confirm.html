@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 <!-- CRAP WARNING: CHANGE -->
 {% block content %}
-{% if has_account %}
-<p>You are already registered you freak!</p>
+{% if user.is_authenticated  %}
+    <p>You are already registered you freak!</p>
 {% else %}{% if expired %}
-<p>Oops the key has expired</p>
+    <p>Oops the key has expired</p>
 {% else %}
-<p>Yaay! thou arth registered</p>
+    <p>Yaay! thou arth registered</p>
 {% endif%}{% endif%}
+
 {% endblock %}

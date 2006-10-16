@@ -1,9 +1,11 @@
 from django.contrib.auth.models import User 
 from django.db import models
+import os
 
 
 class UserProfile(models.Model):
     """ Contains details about the user """
+    #TODO: Change this to self.name and have special method for activation key
     def __str__(self):
         return self.activation_key
     score = models.PositiveIntegerField(default=0)
@@ -28,10 +30,11 @@ class Question(models.Model):
 class Attempt(models.Model):
     """ Contains Attempt Information """
     def __str__(self):
-        return self.user.alias + ' :' + self.question.name 
+        return self.user.user.username + ' :' + self.question.name 
     user = models.ForeignKey(UserProfile)
     question = models.ForeignKey(Question)
-    attempt_number = models.PositiveIntegerField()
     result = models.BooleanField()
+    # Stores All submits made at the same time (to the precision of a second in the same path)
+    # TODO:We will adjust precision as needed
+    code_path = models.FileField(upload_to = r'submits/') 
     class Admin: pass
-

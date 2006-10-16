@@ -1,28 +1,34 @@
 import datetime, random, sha
 import os
+from hackzor import settings
 from django import forms 
 from django.shortcuts import render_to_response, get_object_or_404
-from hackzor.server.models import Question
-from django.core.mail import send_mail
-from hackzor.server.forms import RegistrationForm, LoginForm
-from hackzor.server.models import UserProfile
 from django.contrib.auth.models import User
-from django.contrib.auth import authenticate
+from django.contrib.auth import authenticate, logout
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseRedirect
+from django.core.mail import send_mail
 
+from hackzor.server.models import Question, Attempt
+from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution
+from hackzor.server.models import UserProfile
+
+@login_required
 def viewProblem (request, id):
-	import settings
-	path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
-	object = Question.objects.get(id=id)
-	inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
-	out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
-	testCase = [x for x in zip(inp, out)]
-	return render_to_response('view_problem.html',
-                              {'object':object, 'testCase':testCase})
+    path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
+    object = Question.objects.get(id=id)
+    inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
+    out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
+    testCase = [x for x in zip(inp, out)]
+    print request.user.is_authenticated()
+    return render_to_response('view_problem.html',
+            {'object':object, 'testCase':testCase, 'user': request.user})
 
 def register(request):
-#     if request.user.is_authenticated():
-#         # They already have an account; don't let them register again
-#         return render_to_response('register.html', {'has_account': True})
+    #TODO: Make this a decorator after cleaning up the template
+    if request.user.is_authenticated():
+         # They already have an account; don't let them register again
+         return render_to_response('register.html', {'has_account': True})
 
     manipulator = RegistrationForm()
     
@@ -76,29 +82,36 @@ def confirm (request, activation_key):
     return render_to_response('confirm.html', {'success': True})
 
 
-def login (request):
-    manipulator = LoginForm()
-    
+def logout_view (request):
+    logout(request)
+    return HttpResponseRedirect('/opc/')
+
+@login_required
+def submit_code (request, problem_no=None):
+    """ Handles Submitting problem. Gets User identity from sessions. requires an authenticated user"""
+    manipulator = SubmitSolution()
+
     if request.POST:
         new_data = request.POST.copy()
+        new_data.update(request.FILES)
         errors = manipulator.get_validation_errors(new_data)
         if not errors:
             manipulator.do_html2python(new_data)
-            user = authenticate(username=new_data['username'],
-                                password=new_data['password'])
-            if user is None:
-                return render_to_response('login.html', {'login_fail':
-                                                         True})
-            else:
-                return render_to_response('login.html', {'login_success':
-                                                         True})
+            #FIXME: Stores only last submited Code for problem for each user
+            new_file = open('submits/%s_%s' %(request.user.username, problem_no), 'w')
+            new_file.write(request.FILES['file_path']['content'])
+
+            # TODO: Catch For Objects that do not exist
+            attempt = Attempt (user = UserProfile.objects.get(user=User.objects.get(username=request.user.username)), 
+                                    question = Question(id=new_data['question_name']),
+                                                            code_path = new_file.name)
+            new_file.close()
+            attempt.save()
+            errors = {'file_path':['Code Uploaded']}
         else:
-            print 'Errors'
+            print errors
     else:
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('login.html', {'form': form})
-
-
-
+    return render_to_response('submit_code.html', {'form': form, 'id_question_name' : problem_no, 'user':request.user})
 
