@@ -1,39 +1,95 @@
 {% extends "base.html" %}
-<!-- CRAP WARNING: CHANGE -->
 {% block content %}
-{% if has_account %}
-<p>You are already registered you freak!</p>
-{% else %}
 <form name="RegistrationForm" method="POST" action=".">
     <table>
+
+        {% if form.username.errors %}
+        <tr>
+            <td>
+                *** {{ form.username.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
           <td><label for="id_username">Enter UserName: </label></td>
           <td>{{ form.username }}</td>
+          <script type='text/javascript'> document.getElementById('id_username').focus() </script>
        </tr>
+
+
+        {% if form.email.errors %}
+        <tr>
+            <td>
+                *** {{ form.email.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
           <td><label for="id_email">Enter Email: </label></td>
           <td>{{ form.email }}</td>
        </tr>
+
+
+        {% if form.password1.errors %}
+        <tr>
+            <td>
+                *** {{ form.password1.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
           <td><label for="id_password1">Enter Password: </label></td>
           <td>{{ form.password1 }}</td>
        </tr>
+
+
+        {% if form.password2.errors %}
+        <tr>
+            <td>
+                *** {{ form.password2.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
-          <td><lable for="id_password2">Re-Enter Password: </label></td>
+          <td><label for="id_password2">Re-Enter Password: </label></td>
           <td>{{ form.password2 }}</td>
        </tr>
+
+
+        {% if form.first_name.errors %}
+        <tr>
+            <td>
+                *** {{ form.first_name.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
-          <td><lable for="id_first_name">First Name: </label></td>
+          <td><label for="id_first_name">First Name: </label></td>
           <td>{{ form.first_name }}</td>
        </tr>
+
+
+        {% if form.last_name.errors %}
+        <tr>
+            <td>
+                *** {{ form.last_name.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
        <tr>
           <td><lable for="id_last_name">Last Name: </label></td>
           <td>{{ form.last_name }}</td>
        </tr>
+
        <tr>
          <td colspan=2><input type="submit" value="Register"></td>
        </tr>
     </table>
 </form>
-{% endif %}
 {% endblock %}

@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block title %} {{ block.super }} - Problem {{object.id}} - {{object.name}} {% endblock %}
+
+{% block content %} 
+    {{ message }}
+{% endblock %}

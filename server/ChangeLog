@@ -1,3 +1,30 @@
+2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
+
+	* views.py (register) : changed rendering from register.html to
+	simple_message.html for boundary cases.
+	Made changes to mail format
+	(confirm) : changed rendering from confirm.html to simple_message.html.
+	added code to delete users whose key has expired
+
+	(submit_code): added code to throw 404 when for non-enistent object
+	queries.
+	Add functionality for correct problem to be selected by default in
+	template.
+	changed question_name to question_id and added langauge_id
+	removed id_question_name  from template parameter list.
+
+	* models.py (Question): added prefix hidden to FileUpload fields
+	Added 'score'.
+
+	(Language): Added
+	(Attempt): Added ForeignKey reference to Language
+
+	* urls.py(urlpatterns): Added plain submit url
+
+	* forms.py(RegistrationForm): Added selectfield for  language 
+
+
+
 2006-10-17  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* views.py (register): Register now sends personalised messages as

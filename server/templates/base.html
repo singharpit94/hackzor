@@ -28,13 +28,18 @@
 							<ul>
 								<li><a href='/opc'>Home</a><br>
 								<li><a href='/opc/problems/'>Problem set</a>
+                                {% if object.id %}
+                                    <li> <a href='/opc/problems/{{ object.id }}/submit/'>Submit</a>
+                                {% else %}
+                                    <li> <a href='/opc/problems/submit/'>Submit</a>
+                                {% endif %}
 
                                 {% if user.is_authenticated  %}
                                     <li><a href='/accounts/logout'>Logout</a>
                                 {% else %}
-                                    <li><a href='/admin/'>Admin Login</a>
                                     <li><a href='/accounts/login/'>User Login</a>
                                 {% endif %}
+                                <li><a href='/admin/'>Admin Login</a>
 
 							</ul>
 						{% endblock %}

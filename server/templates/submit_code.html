@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<table> <form enctype="multipart/form-data" name="Submit" method="POST" action=".">
+<table> <form enctype="multipart/form-data" name="Submit" method="POST">
 
     {% if form.file_path.errors %}
     <tr>
@@ -16,16 +16,28 @@
         <td>{{ form.file_path }} {{ form.file_path_file}} <p></td>
     </tr>
 
-    {% if form.question_name.errors %}
+    {% if form.question_id.errors %}
     <tr>
         <td>
-            *** {{ form.question_name.errors|join:", " }}
+            *** {{ form.question_id.errors|join:", " }}
         </td>
     </tr>
     {% endif %}
     <tr>
-            <td align="right"><label for="id_question_name">Question: </label></td>
-            <td>{{ form.question_name }}</td><p></td>
+            <td align="right"><label for="id_question_id">Question: </label></td>
+            <td>{{ form.question_id }}</td><p></td>
+    </tr>
+
+    {% if form.language_id.errors %}
+    <tr>
+        <td>
+            *** {{ form.language_id.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+            <td align="right"><label for="id_language_id">Language: </label></td>
+            <td>{{ form.language_id }}</td><p></td>
     </tr>
 
     <tr>

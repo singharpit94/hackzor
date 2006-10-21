@@ -16,6 +16,7 @@
         </tr>
         {% endif %}
         <tr><td><label for="id_username">Username:</label></td><td>{{ form.username }}</td></tr>
+        <script type='text/javascript'> document.getElementById('id_username').focus() </script>
 
 
         {% if form.password.errors %}
