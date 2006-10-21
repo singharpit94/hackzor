@@ -19,9 +19,16 @@ class Question(models.Model):
         return self.name
     name = models.CharField(maxlength=32)
     text = models.TextField()
-    test_input = models.FileField(upload_to = 'evaluators/testCases')
-    test_output = models.FileField(upload_to= 'evaluators/testCases/')
-    evaluator_path = models.FileField(upload_to = 'evaluators/pyCode/')
+    test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
+    test_output = models.FileField(upload_to= 'hidden/evaluators/testCases/')
+    evaluator_path = models.FileField(upload_to = 'hidden/evaluators/pyCode/')
+    score = models.IntegerField()
+    class Admin: pass
+
+class Language(models.Model):
+    def __str__(self):
+        return self.compiler
+    compiler = models.CharField(maxlength=32)
     class Admin: pass
 
 class Attempt(models.Model):
@@ -31,8 +38,6 @@ class Attempt(models.Model):
     user = models.ForeignKey(UserProfile)
     question = models.ForeignKey(Question)
     result = models.BooleanField()
-    # Stores All submits made at the same time (to the precision of a second in
-    # the same path)
-    # TODO:We will adjust precision as needed
-    code_path = models.FileField(upload_to = r'submits/') 
+    code = models.TextField()
+    language = models.ForeignKey(Language)
     class Admin: pass

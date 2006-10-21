@@ -1,3 +1,7 @@
+2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
+
+	* settings.py (CONTEST_URL): Added
+
 2006-10-17  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* settings.py (CONTEST_NAME, CONTEST_EMAIL): Added generic support

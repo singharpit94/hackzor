@@ -1,4 +1,23 @@
+2006-10-21  Ravi Shankar <ravehanker@gmail.com>
+	
+	* confirm.html: Removed.
+	* simple_message.html: Added
+
+	* submit_code.html: removed action in <form>.
+	Changed question_name to question_id.
+	Added language_id.
+
+	* register.html: Added Error handling code using form.errors
+	corrected lable to label in first_name and password2
+	Added javascript to bring form.username into focus on load
+
+	* login.html: Added javascript to bring form.username into focus on load
+
+	* base.html: Added Submit and make Admin login common to all users
+	
+
 2006-10-16  Ravi Shankar <ravehanker@gmail.com>
+
 	* confirm.html: Cleaned up variables and added the user variable
 	* login.html: Cleaned up variables and added the form variable
 	* base.html: Added conditional display of login links

@@ -28,5 +28,8 @@ urlpatterns = patterns('',
         (r'^problems/(?P<problem_no>\d+)/submit/$',
             'hackzor.server.views.submit_code'),
 
+        (r'^problems/submit/$',
+            'hackzor.server.views.submit_code'),
+
         )
 

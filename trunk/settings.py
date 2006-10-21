@@ -84,5 +84,7 @@ AUTH_PROFILE_MODULE = 'server.UserProfile'
 
 # Replace with the name of your own contest
 CONTEST_NAME = 'Hackzor' 
-# Replace with the email of your own contest
+# replace with the email of your own contest
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
+# replace with the url of your own contest
+CONTEST_URL = '192.168.1.2'

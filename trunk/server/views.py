@@ -1,6 +1,6 @@
 import datetime, random, sha
 import os
-from hackzor import settings
+
 from django import forms 
 from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.models import User
@@ -8,10 +8,11 @@ from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect
 from django.core.mail import send_mail
+from django.utils.datastructures import MultiValueDict
 
-from hackzor.server.models import Question, Attempt
+from hackzor import settings
+from hackzor.server.models import Question, Attempt, UserProfile, Language
 from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution
-from hackzor.server.models import UserProfile
 
 @login_required
 def viewProblem (request, id):
@@ -20,7 +21,6 @@ def viewProblem (request, id):
     inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
     out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
     testCase = [x for x in zip(inp, out)]
-    print request.user.is_authenticated()
     return render_to_response('view_problem.html',
                               {'object':object, 'testCase':testCase,
                                'user': request.user})
@@ -29,7 +29,7 @@ def register(request):
     # TODO: Make this a decorator after cleaning up the template
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
-         return render_to_response('register.html', {'has_account': True})
+         return render_to_response('simple_message.html', {'message' :"You are already registered."} )
 
     manipulator = RegistrationForm()
     
@@ -53,15 +53,18 @@ def register(request):
             new_profile.save()
 
             # Send an email with the confirmation link
+            # TODO: Store the message in a seperate file or DB
             email_subject = 'Your new Hackzor account confirmation'
-            email_body = 'Hello, %s, and thanks for signing up for an %s account!\n\nTo activate your account, click this link within 48 hours:\n\n http://localhost:8000/accounts/confirm/%s' % ('Hello', settings.CONTEST_NAME,new_profile.activation_key)
+            email_body = 'Hello, %s, and thanks for signing up for an %s account!\n\nTo activate your account, click this link within 48 hours:\n\n \
+                    http://%s/accounts/confirm/%s' % ('Hello', settings.CONTEST_NAME, settings.CONTEST_URL, new_profile.activation_key)
             
             send_mail(email_subject,
                       email_body,
                       settings.CONTEST_EMAIL,
                       [new_user.email])
             
-            return render_to_response('register.html', {'created': True})
+            return render_to_response('simple_message.html', 
+            {'message' : 'A mail has been sent to %s. Follow the link in the mail to activate your account' %(new_user.email) })
         else:
             print 'Errors'
     else:
@@ -75,12 +78,16 @@ def confirm (request, activation_key):
 #         return render_to_response('confirm.html', {'has_account': True})
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
+    #TODO : Prevent attacks by resetting the key when activated
     if user_profile.key_expires < datetime.datetime.today():
-        return render_to_response('confirm.html', {'expired': True})
+        u = user_profile.user
+        user_profile.delete();
+        u.delete()
+        return render_to_response('simple_message.html', {'message' : 'Your activation key has expired. Please register again'})
     user_account = user_profile.user
     user_account.is_active = True
     user_account.save()
-    return render_to_response('confirm.html', {'success': True})
+    return render_to_response('simple_message.html', {'message' : 'Thou arth registered. Begin thy quest for glory!'})
 
 
 def logout_view (request):
@@ -98,20 +105,20 @@ def submit_code (request, problem_no=None):
         errors = manipulator.get_validation_errors(new_data)
         if not errors:
             manipulator.do_html2python(new_data)
-            #FIXME: Stores only last submited Code for problem for each user
-            new_file = open('submits/%s_%s' %(request.user.username, problem_no), 'w')
-            new_file.write(request.FILES['file_path']['content'])
 
-            # TODO: Catch For Objects that do not exist
-            attempt = Attempt (user = UserProfile.objects.get(user=User.objects.get(username=request.user.username)), 
-                                    question = Question(id=new_data['question_name']),
-                                                            code_path = new_file.name)
-            new_file.close()
+            content  = request.FILES['file_path']['content']
+            user     = get_object_or_404(UserProfile, user=request.user)
+            question = get_object_or_404(Question, id=new_data['question_id'])
+            language = get_object_or_404(Language, id=new_data['language_id'])
+            attempt  = Attempt (user = user, question=question, code=content, language=language)
             attempt.save()
-            errors = {'file_path':['Code Uploaded']}
+            return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
         else:
             print errors
     else:
         errors = new_data = {}
+        if problem_no:
+            new_data = MultiValueDict({'question_id':[problem_no]})
+
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('submit_code.html', {'form': form, 'id_question_name' : problem_no, 'user':request.user})
+    return render_to_response('submit_code.html', {'form': form, 'user':request.user})
