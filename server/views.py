@@ -110,9 +110,9 @@ def submit_code (request, problem_no=None):
             user     = get_object_or_404(UserProfile, user=request.user)
             question = get_object_or_404(Question, id=new_data['question_id'])
             language = get_object_or_404(Language, id=new_data['language_id'])
-            attempt  = Attempt (user = user, question=question, code=content, language=language)
-            pending  = Pending(attempt=attempt)
+            attempt  = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.save()
+            pending  = Pending(attempt=attempt)
             pending.save()
             return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
         else:
