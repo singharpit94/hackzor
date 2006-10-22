@@ -40,4 +40,8 @@ class Attempt(models.Model):
     result = models.BooleanField()
     code = models.TextField()
     language = models.ForeignKey(Language)
+    time_of_submit = models.DateTimeField(auto_now_add=True)
     class Admin: pass
+
+class Pending(models.Model):
+    attempt = models.ForeignKey(Attempt)
