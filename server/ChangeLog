@@ -1,3 +1,9 @@
+2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
+	
+	* models.py (Prending): Added
+	(Attempt): Added time_of_submit
+	* views.py(submit_code): Added code to put new submits in Pending
+
 2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
 
 	* views.py (register) : changed rendering from register.html to

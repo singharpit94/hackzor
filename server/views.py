@@ -11,7 +11,7 @@ from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 
 from hackzor import settings
-from hackzor.server.models import Question, Attempt, UserProfile, Language
+from hackzor.server.models import Question, Attempt, UserProfile, Language, Pending
 from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution
 
 @login_required
@@ -111,7 +111,9 @@ def submit_code (request, problem_no=None):
             question = get_object_or_404(Question, id=new_data['question_id'])
             language = get_object_or_404(Language, id=new_data['language_id'])
             attempt  = Attempt (user = user, question=question, code=content, language=language)
+            pending  = Pending(attempt=attempt)
             attempt.save()
+            pending.save()
             return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
         else:
             print errors
