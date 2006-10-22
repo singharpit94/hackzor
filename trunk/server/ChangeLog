@@ -1,8 +1,9 @@
 2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
 	
 	* models.py (Prending): Added
-	(Attempt): Added time_of_submit
-	* views.py(submit_code): Added code to put new submits in Pending
+	(Attempt): Added time_of_submit, file_name
+	* views.py(submit_code): Added code to put new submits in Pending.
+	Added code to include file_name
 
 2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
 

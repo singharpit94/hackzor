@@ -88,3 +88,6 @@ CONTEST_NAME = 'Hackzor'
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
 # replace with the url of your own contest
 CONTEST_URL = '192.168.1.2'
+
+
+SESSION_COOKIE_AGE =1800

@@ -39,6 +39,7 @@ class Attempt(models.Model):
     question = models.ForeignKey(Question)
     result = models.BooleanField()
     code = models.TextField()
+    file_name = models.CharField(maxlength=32)
     language = models.ForeignKey(Language)
     time_of_submit = models.DateTimeField(auto_now_add=True)
     class Admin: pass
