@@ -35,8 +35,12 @@ urlpatterns = patterns('',
             'hackzor.server.views.register'),
 
         # For reseting password
-        (r'^accounts/reset/(?P<activation_key>\w+)/$',
-            'hackzor.server.views.confirm'),
+        (r'^accounts/resetpassword/$',
+            'hackzor.server.views.forgot_password'),
+
+        # To Change password
+        (r'^accounts/changepassword/$',
+            'hackzor.server.views.change_password'),
 
         # Admin Interface 
         (r'^admin/', 
