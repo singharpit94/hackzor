@@ -29,7 +29,12 @@ urlpatterns = patterns('',
             'hackzor.server.views.submit_code'),
 
         (r'^problems/submit/$',
-            'hackzor.server.views.submit_code'),
+            'hackzor.server.views.submit_code',),
 
+        # Search Questions page
+        (r'^search?\w+',
+         'hackzor.server.views.search_questions',
+         {'template_name':'search_results.html'}
+         ),
         )
 

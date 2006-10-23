@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<ul>
+  {% if not result %}
+    <p>Sorry, No results match your query. Please try again</p>
+  {% else %}
+    {% for res in result.keys %}
+    <li><a href="{{ result.res }}">{{ res }} </li>
+    {% endfor %}
+  {% endif %}
+</ul>

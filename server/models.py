@@ -7,6 +7,7 @@ class UserProfile(models.Model):
     # TODO: Change this to self.name and have special method for activation key
     def __str__(self):
         return self.user.get_full_name()
+    
     score = models.PositiveIntegerField(default=0)
     activation_key = models.CharField(maxlength=40)
     key_expires = models.DateTimeField() 
@@ -17,6 +18,7 @@ class Question(models.Model):
     """ Contains the question content and path to evaluators and test cases """
     def __str__(self):
         return self.name
+    
     name = models.CharField(maxlength=32)
     text = models.TextField()
     test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
@@ -28,13 +30,15 @@ class Question(models.Model):
 class Language(models.Model):
     def __str__(self):
         return self.compiler
+    
     compiler = models.CharField(maxlength=32)
     class Admin: pass
 
 class Attempt(models.Model):
     """ Contains Attempt Information """
     def __str__(self):
-        return self.user.user.username + ' :' + self.question.name 
+        return self.user.user.username + ' :' + self.question.name
+    
     user = models.ForeignKey(UserProfile)
     question = models.ForeignKey(Question)
     result = models.BooleanField()
@@ -44,5 +48,12 @@ class Attempt(models.Model):
     time_of_submit = models.DateTimeField(auto_now_add=True)
     class Admin: pass
 
-class Pending(models.Model):
+class ToBeEvaluated(models.Model):
+    """ Contains Attempts which are yet to be Evaluated """
     attempt = models.ForeignKey(Attempt)
+
+class BeingEvaluated (models.Model):
+    """ Contains Attempts which have been assigned to an Evaluator but whose
+    evaluation process is yet to be completed. In the case that an evaluator
+    crashes, these attempt might need to be moved back to ToBeEvaluated """
+    attempt = models.ForeignKey (Attempt)

@@ -11,8 +11,9 @@ from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 
 from hackzor import settings
-from hackzor.server.models import Question, Attempt, UserProfile, Language, Pending
+from hackzor.server.models import Question, Attempt, UserProfile, Language, ToBeEvaluated
 from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution, ForgotPassword, ChangePassword
+from hackzor.evaluator.main import Client
 
 @login_required
 def viewProblem (request, id):
@@ -174,12 +175,16 @@ def submit_code (request, problem_no=None):
 
             content  = request.FILES['file_path']['content']
             user     = get_object_or_404(UserProfile, user=request.user)
+            print 'user'
             question = get_object_or_404(Question, id=new_data['question_id'])
+            print 'question'
             language = get_object_or_404(Language, id=new_data['language_id'])
+            print 'language'
             attempt  = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.save()
-            pending  = Pending(attempt=attempt)
+            pending  = ToBeEvaluated (attempt=attempt)
             pending.save()
+            Client().start()
             return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
         else:
             print errors
@@ -190,3 +195,27 @@ def submit_code (request, problem_no=None):
 
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form, 'user':request.user})
+
+def search_questions (request, keywords):
+    """ Search Engine for the Questions"""
+    if request.GET:
+        data = request.GET.copy()
+        keywords = data.getlist ('keywords')
+        if not keywords:
+            # no keywords. no search
+            pass
+        else:
+            keywords = keywords[0].split()
+        #         page_no = data.getlist ('page')
+        #         if not page_no:
+        #             page_no = 0
+        #         else:
+        #             page_no = page_no[0] - 1
+        all_qns = Question.objects.all()
+        result = {}
+        for qn in all_qns:
+            for kwd in keywords:
+                if qn.name.find(kwd) != -1 or qn.text.find (kwd) != -1:
+                    result [qn.name] = request.SERVER_NAME+':'+request.SERVER_PORT+'/opc/problems/'+qn.id
+                    break
+        return render_to_response('search_results.html', result)
