@@ -5,6 +5,7 @@ import commands
 import threading
 import subprocess
 import tempfile
+import signal
 import time
 try:
     from hackzor.evaluator.settings import *
@@ -13,7 +14,7 @@ try:
 except ImportError:
     C_COMPILE_STR = 'gcc -lm \'%i\' -o \'%o\''
     CPP_COMPILE_STR = 'g++ -lm \%i\' -o \'%o\''
-    JAVA_COMPILE_STR = 'javac \'%i\''
+    JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
     WORK_DIR = 'evaluator/work_files'
 
 
@@ -23,7 +24,7 @@ class EvaluatorError (Exception):
         self.error = error
 
     def __str__ (self):
-        return repr (self.value)
+        return 'Error: '+self.error+'\tValue: '+ self.value
 
 
 class Evaluator:
@@ -48,6 +49,9 @@ class Evaluator:
         p = subprocess.Popen (cmd, **kws)
         while True:
             if time.time() - start_time >= 5:
+                # TODO: Rework!! Shitty Method used. Run without starting Shell
+                os.kill (p.pid+1, signal.SIGTERM)
+                print 'Killed '+str(p.pid+1)
                 raise EvaluatorError ('Time Limit Expired')
             elif p.poll() != None:
                 break
@@ -66,7 +70,6 @@ class Evaluator:
         try:
             if not os.path.exists (WORK_DIR):
                 os.mkdir (WORK_DIR)
-            print 'File Path',file_path
             path_cont = []
             path_split = lambda (x): x != '' and \
                          path_split(os.path.split(x)[0]) or \
@@ -77,9 +80,7 @@ class Evaluator:
             # *Defenitely* needs a rewrite
             
             path_split (file_path)
-            print 'Initial path_cont', path_cont
             path_cont = path_cont[1:-1]
-            print 'New Path_cont', path_cont
             path = WORK_DIR
             for cont in path_cont:
                 path = os.path.join (path, cont)
@@ -101,8 +102,10 @@ class Evaluator:
         # Compile the File
         exec_file = self.compile (code_file)
 
+        cmd = self.get_run_cmd (exec_file)
+        
         # Execute the file for preset input
-        output = self.run (exec_file, attempt.question.test_input)
+        output = self.run (cmd, attempt.question.test_input)
 
         # Match the output to expected output
         return self.check (attempt, output)
@@ -113,17 +116,11 @@ class Evaluator:
             raise EvaluatorError ('Evalutor Not Supported')
         eval_path = eval_path[:-3]
         compare = __import__ (eval_path)
-        print output
-        print compare.compare
         result =  compare.compare (output)
-        print 'Result: ', result
         return result
 
 
 class C_Evaluator (Evaluator):
-    num_out = 0
-    status = 0
-    output = ''
     def __init__ (self):
         self.compile_cmd = C_COMPILE_STR
         
@@ -145,29 +142,45 @@ class C_Evaluator (Evaluator):
             return output_file
 
 
-class CPP_Evaluator (Evaluator):
+class CPP_Evaluator (C_Evaluator):
+    def __init__ (self):
+        self.compile_cmd = CPP_COMPILE_STR
+
     def __str__ (self):
         return 'C++ Evaluator'
-
-    def evaluate (self, attempt):
-        pass
     
 
 class Java_Evaluator (Evaluator):
     def __str__ (self):
         return 'Java Evaluator'
 
-    def evaluate (self, attempt):
-        pass
+    def __init__ (self):
+        self.compile_cmd = JAVA_COMPILE_STR
+
+    def get_run_cmd (self, exec_file):
+        return 'java '+exec_file
+
+    def compile (self, code_file):
+        output_dir, file_name = os.path.split (code_file)
+        cmd = self.compile_cmd.replace ('%i',code_file).replace('%o',
+                                                                output_dir)
+        if file_name [-5:] != '.java':
+            raise EvaluatorError ('Compiler Error', 'Not a Java File')
+        file_name = file_name [:-5]
+        (status, output) = commands.getstatusoutput (cmd)
+        if status != 0:
+            raise EvaluatorError ('Compiler Error', output)
+        else:
+            return file_name
 
 
 class Python_Evaluator (Evaluator):
     def __str__ (self):
         return 'Python Evaluator'
 
-    def compile (self, attempt):
+    def compile (self, code_file):
         """ Nothing to Compile in the case of Python. Aha *Magic*!"""
-        pass
+        return code_file
 
     def get_run_cmd (self, exec_file):
         return 'python '+exec_file
@@ -194,6 +207,7 @@ class Client (threading.Thread):
             attempt = ToBeEvaluated.objects.all()[0]
             to_be_eval = BeingEvaluated(attempt=attempt.attempt)
             attempt.delete()
+            to_be_eval.save()
             return to_be_eval
         except IndexError:
             return None
@@ -221,20 +235,22 @@ class Client (threading.Thread):
             evaluator = self.evaluators[lang]()
             result = evaluator.evaluate(attempt)
             attempt.user.score += self.score (result, attempt.question.score)
-            evalutator.delete()
             return result
         except KeyError:
             raise NotImplementedError ('Language '+lang+' not supported')
         
     def run (self):
         print 'Evaluator Started'
-        #while True:
         attempt = self.get_attempt ()
         if attempt == None:
             return
-            #continue
         # evalute the attempt
-        return_value = self.evaluate (attempt.attempt)
-        attempt.delete ()
+        try:
+            return_value = self.evaluate (attempt.attempt)
+        except EvaluatorError:
+            print 'EvaluatorError: '
+            print sys.exc_info()[1].error
+            return_value = False
+        attempt.delete()
+        print 'Final Result: ', return_value
         return return_value
-

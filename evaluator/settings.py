@@ -8,6 +8,6 @@
 
 C_COMPILE_STR = '/usr/bin/gcc -lm \'%i\' -o \'%o\''
 CPP_COMPILE_STR = 'g++ -lm \%i\' -o \'%o\''
-JAVA_COMPILE_STR = 'javac \'%i\''
+JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
 
 WORK_DIR = 'evaluator/work_files'
