@@ -15,6 +15,8 @@
 
 	* settings.py (CONTEST_NAME, CONTEST_EMAIL): Added generic support
 	for Contest Name and Email ID
+	(SUPPORTED_LANGS): Added SUPPORTED_LANGS, which should be used to
+	populate the language field in code submission
 
 2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
 	* urls.py(urlpatterns): Added default home page

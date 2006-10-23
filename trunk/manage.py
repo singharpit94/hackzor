@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from django.core.management import execute_manager
+#import thread, time
 try:
     import settings # Assumed to be in the same directory.
 except ImportError:
@@ -9,3 +10,10 @@ except ImportError:
 
 if __name__ == "__main__":
     execute_manager(settings)
+#     thread.start_new_thread (execute_manager, (settings, ))
+#     time.sleep (5)
+#     from evaluator.main import Client
+#     print 'Starting Client'
+#     Client().start()
+    
+

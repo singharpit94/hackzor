@@ -86,8 +86,8 @@ AUTH_PROFILE_MODULE = 'server.UserProfile'
 CONTEST_NAME = 'Hackzor' 
 # replace with the email of your own contest
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
+
 # replace with the url of your own contest
-CONTEST_URL = '192.168.1.2'
+CONTEST_URL = 'localhost:8000'
 
-
-SESSION_COOKIE_AGE = 1800
+SESSION_COOKIE_AGE =1800

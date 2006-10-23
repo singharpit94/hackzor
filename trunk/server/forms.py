@@ -145,3 +145,11 @@ class ChangePassword (forms.Manipulator):
                                 validator_list=[validators.AlwaysMatchesOtherField('password1',
                                                                                    'Passwords must match.')]),
             )
+
+class SearchQuery (forms.Manipulator):
+    """ Search for Questions """
+    def __init__ (self):
+        self.fields = (
+            forms.TextField (field_name='keywords',
+                             length=30, maxlength=50,
+                             is_required=True),)
