@@ -1,3 +1,10 @@
+2006-10-23  Ravi Shankar <ravehanker@gmail.com>
+	
+	* reset_password.html: Added
+
+	* base.html: removed tables and added css
+	Added Footer
+
 2006-10-21  Ravi Shankar <ravehanker@gmail.com>
 	
 	* confirm.html: Removed.

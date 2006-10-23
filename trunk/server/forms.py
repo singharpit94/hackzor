@@ -110,3 +110,19 @@ class SubmitSolution (forms.Manipulator):
                         is_required=True),
             )
 
+
+class ForgotPassword (forms.Manipulator):
+    ''' Forgot Password Manipulator '''
+    def __init__(self):
+        self.fields = (
+            forms.TextField(field_name='username',
+                            length=30, maxlength=30,
+                            is_required=True,
+                            validator_list=[validators.isAlphaNumeric,
+                                            self.isValidUsername]),
+                            )
+    def userExists(self):
+        try:
+            User.objects.get(username=field_data)
+        except User.DoesNotExist:
+            raise validators.ValidationError('The username "%s" is does not exist.' % field_data)
