@@ -56,7 +56,7 @@ def register(request):
             # TODO: Store the message in a seperate file or DB
             email_subject = 'Your new Hackzor account confirmation'
             email_body = 'Hello, %s, and thanks for signing up for an %s account!\n\nTo activate your account, click this link within 48 hours:\n\n \
-                    http://%s/accounts/confirm/%s' % ('Hello', settings.CONTEST_NAME, settings.CONTEST_URL, new_profile.activation_key)
+                    http://%s/accounts/confirm/%s' % (request.user.username, settings.CONTEST_NAME, settings.CONTEST_URL, new_profile.activation_key)
             
             send_mail(email_subject,
                       email_body,
@@ -74,8 +74,8 @@ def register(request):
 
 
 def confirm (request, activation_key):
-#     if request.user.is_authenticated():
-#         return render_to_response('confirm.html', {'has_account': True})
+     if request.user.is_authenticated():
+        return render_to_response('simple_message.html', {'message' : 'You are already registerd!'})
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
     #TODO : Prevent attacks by resetting the key when activated
@@ -93,6 +93,7 @@ def confirm (request, activation_key):
 def logout_view (request):
     logout(request)
     return HttpResponseRedirect('/opc/')
+
 
 @login_required
 def submit_code (request, problem_no=None):

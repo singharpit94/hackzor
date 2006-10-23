@@ -34,6 +34,10 @@ urlpatterns = patterns('',
         (r'^accounts/register/$',
             'hackzor.server.views.register'),
 
+        # For reseting password
+        (r'^accounts/reset/(?P<activation_key>\w+)/$',
+            'hackzor.server.views.confirm'),
+
         # Admin Interface 
         (r'^admin/', 
             include('django.contrib.admin.urls')),

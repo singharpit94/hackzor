@@ -1,0 +1,75 @@
+#navibar ul {
+    padding : 7px 0;
+    margin : 0;
+    list-style : none;
+    border-bottom: 1px solid #CCC;font-weight: bold;
+    white-space : nowrap;
+    text-align : center;
+    width : auto;
+}
+
+#navibar li {
+    padding : 0;
+    margin : 0 5px;
+    display : inline;
+
+}
+#navibar a:link,
+#navibar a:visited {
+    width:150px; 
+    height:25px;
+    padding : 3px;
+    text-decoration : none;
+    color : #8FA9C5;
+    font-weight: bold;
+    /* TODO: Add a family */
+    Xfont-family:"trebuchet ms", tahoma, arial, verdana, sans-serif;
+    border-bottom: 4px solid #FFF;
+}
+
+#navibar a:hover {
+    border-color : #FF5500;
+    color : #00B713;
+}
+
+#topbar {
+    text-align : center;
+    /* TODO: Add a family */
+    font-family : arial ;
+    font-size : 1.15em;
+    color : #1E77D3;
+    xbackground : #1E77D3;
+    xcolor : #FFF;
+}
+
+#content {
+    min-height : 600px;
+    padding-top : 10px;
+    width:700px;
+}
+#wrapper {
+    border-left : 0px solid #000;
+    border-right : 0px solid #000;
+    margin : 0 20% 0 20%;
+    xmargin : 0px auto 0 auto;
+    padding : 10px;
+    padding-bottom : 5px;
+    xtext-align:left;
+    background : #F4F4F4;
+}
+
+#footer  {
+    border-top: 1px solid #CCC;
+    xfont-weight: bold;
+    text-align : center;
+    color : #8FA9C5;
+}
+#footer ul {
+
+}
+#footer ul li {
+    font-size: .55em;
+    display : inline;
+    list-style : none;
+    white-space : nowrap
+}
