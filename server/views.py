@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 
@@ -196,26 +196,19 @@ def submit_code (request, problem_no=None):
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form, 'user':request.user})
 
-def search_questions (request, keywords):
+def search_questions (request):
     """ Search Engine for the Questions"""
+    result = []
+    beenthere=False
     if request.GET:
+        beenthere=True
         data = request.GET.copy()
-        keywords = data.getlist ('keywords')
-        if not keywords:
-            # no keywords. no search
-            pass
-        else:
-            keywords = keywords[0].split()
-        #         page_no = data.getlist ('page')
-        #         if not page_no:
-        #             page_no = 0
-        #         else:
-        #             page_no = page_no[0] - 1
-        all_qns = Question.objects.all()
-        result = {}
-        for qn in all_qns:
-            for kwd in keywords:
-                if qn.name.find(kwd) != -1 or qn.text.find (kwd) != -1:
-                    result [qn.name] = request.SERVER_NAME+':'+request.SERVER_PORT+'/opc/problems/'+qn.id
+        keywords = data.getlist ('search_text')
+        if keywords:
+            result = Question.objects.filter(text__icontains=keywords[0])
+            for k in keywords[1:]:
+                result = result.get(text__icontains=k)
+                if result.count() == 0:
                     break
-        return render_to_response('search_results.html', result)
+
+    return render_to_response('search_result.html', {'beenthere':beenthere, 'result':result})
