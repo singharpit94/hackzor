@@ -3,14 +3,19 @@
 	* models.py (ToBeEvaluated, BeingEvaluated): Changed Pending Model to
 	ToBeEvaluated and also added BeingEvaluated Model
 
+	* views.py(search_questions): Added
+
 2006-10-23  Ravi Shankar  <ravehanker@gmail.com>
 
 	* views.py(register): added username to mail content
 	(confim): added authentication check.
 	changes template output to simple_message where needed
 	(forgot_password, change_password): Added
+	(search_questions): cleaned up and made it work with builtin queries
 
 	* form.py(ForgotPassword, ChangePassword): Added
+
+	* urls.py(urlpatterns): Added search and top10 urls
 
 2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
 	

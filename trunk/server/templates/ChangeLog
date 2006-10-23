@@ -1,3 +1,7 @@
+2006-10-23  Prashanth Mohan  <prashmohan@gmail.com>
+	
+	* search_result: Added
+
 2006-10-23  Ravi Shankar <ravehanker@gmail.com>
 	
 	* reset_password.html: Added
@@ -6,6 +10,11 @@
 	* base.html: removed tables and added css
 	Added Footer
 	Added links to "Change password" and "forgot password"
+	Added Top10 and search links
+
+	* search_result.html: Modified to accomodate changes in view
+
+	* view_toppers.html: Aded
 
 2006-10-21  Ravi Shankar <ravehanker@gmail.com>
 	

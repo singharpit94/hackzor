@@ -1,5 +1,5 @@
 from django.conf.urls.defaults import *
-from hackzor.server.models import Question
+from hackzor.server.models import Question, UserProfile
 
 problem_dict = {
 	'queryset' : Question.objects.all()
@@ -32,9 +32,12 @@ urlpatterns = patterns('',
             'hackzor.server.views.submit_code',),
 
         # Search Questions page
-        (r'^search?\w+',
-         'hackzor.server.views.search_questions',
-         {'template_name':'search_results.html'}
-         ),
+        (r'^search/',
+         'hackzor.server.views.search_questions',),
+
+        # TOP 10 list
+        (r'^top10/$',
+            'django.views.generic.list_detail.object_list',
+            { 'queryset' : UserProfile.objects.order_by('score')[:10], 'template_name' : 'view_toppers.html' }),
         )
 
