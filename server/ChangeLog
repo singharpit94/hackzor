@@ -3,8 +3,9 @@
 	* views.py(register): added username to mail content
 	(confim): added authentication check.
 	changes template output to simple_message where needed
+	(forgot_password, change_password): Added
 
-	* form.py(ForgotPassword): Added
+	* form.py(ForgotPassword, ChangePassword): Added
 
 2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
 	

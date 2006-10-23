@@ -27,8 +27,10 @@
 
                 {% if user.is_authenticated  %}
                     <li><a href='/accounts/logout'>Logout</a>
+                    <li><a href='/accounts/changepassword/'>Change Password</a>
                 {% else %}
                     <li><a href='/accounts/login/'>User Login</a>
+                    <li><a href='/accounts/resetpassword/'>Forgot Password?</a>
                 {% endif %}
                     <li><a href='/admin/'>Admin Login</a>
 

@@ -2,7 +2,7 @@
 
 	* settings.py(CONTEST_URL): Added
 
-	* urls.py(urlpatterns): Added url for password reset
+	* urls.py(urlpatterns): Added url for password reset and change password
 
 2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
 	* settings.py (SESSION_COOKIE_AGE): Added

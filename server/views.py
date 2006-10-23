@@ -12,7 +12,7 @@ from django.utils.datastructures import MultiValueDict
 
 from hackzor import settings
 from hackzor.server.models import Question, Attempt, UserProfile, Language, Pending
-from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution
+from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution, ForgotPassword, ChangePassword
 
 @login_required
 def viewProblem (request, id):
@@ -74,7 +74,7 @@ def register(request):
 
 
 def confirm (request, activation_key):
-     if request.user.is_authenticated():
+    if request.user.is_authenticated():
         return render_to_response('simple_message.html', {'message' : 'You are already registerd!'})
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
@@ -93,6 +93,71 @@ def confirm (request, activation_key):
 def logout_view (request):
     logout(request)
     return HttpResponseRedirect('/opc/')
+
+def forgot_password(request):
+    ''' Sends mail to user on reset passwords '''
+
+    manipulator = ForgotPassword()
+
+    if request.POST:
+        import md5
+        new_data = request.POST.copy()
+        errors = manipulator.get_validation_errors(new_data)
+        if not errors:
+            manipulator.do_html2python(new_data)
+            # Build the activation key, for the reset password
+            salt = sha.new(str(random.random())).hexdigest()[:5]
+            new_password = md5.md5 (str(random.random())).hexdigest()[:8]
+            username = new_data['username']
+
+            # Create and save their profile
+            u = User.objects.get(username=username)
+            u.set_password(new_password)
+            u.save()
+
+            # Send an email with the password
+            email_subject = 'Your new Hackzor account password reset'
+            email_body = 'Hello, %s. A password reset was requested at %s. Your new_password is %s.' % (request.user.username, 
+                    settings.CONTEST_URL, new_password)
+            
+            send_mail(email_subject,
+                      email_body,
+                      settings.CONTEST_EMAIL,
+                      [u.email])
+            
+            return render_to_response('simple_message.html', 
+            {'message' : 'A mail has been sent to %s with the new password' %(u.email) })
+        else:
+            print 'Errors'
+    else:
+        errors = new_data = {}
+    form = forms.FormWrapper(manipulator, new_data, errors)
+    return render_to_response('reset_password.html', {'form': form})
+
+@login_required
+def change_password(request):
+    ''' Change Pasword View. Need I say more? '''
+    manipulator = ChangePassword()
+
+    if request.POST:
+        new_data = request.POST.copy()
+        errors = manipulator.get_validation_errors(new_data)
+        if not errors:
+            manipulator.do_html2python(new_data)
+            user = request.user
+            if user.check_password(new_data['old_password']):
+                user.set_password(new_data['password1'])
+                user.save()
+                return render_to_response('simple_message.html', {'message' : 'Password Changed!'})
+            else:
+                    errors['old_password'].append('Old Password is incorrect')
+        else: 
+            print errors
+    else:
+        errors = new_data = {}
+
+    form = forms.FormWrapper(manipulator, new_data, errors)
+    return render_to_response('change_password.html', {'form': form, 'user':request.user})
 
 
 @login_required

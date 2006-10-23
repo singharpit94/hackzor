@@ -118,11 +118,30 @@ class ForgotPassword (forms.Manipulator):
             forms.TextField(field_name='username',
                             length=30, maxlength=30,
                             is_required=True,
-                            validator_list=[validators.isAlphaNumeric,
-                                            self.isValidUsername]),
+                            validator_list=[self.userExists]),
                             )
-    def userExists(self):
+    def userExists(self, field_data, all_data):
         try:
             User.objects.get(username=field_data)
         except User.DoesNotExist:
             raise validators.ValidationError('The username "%s" is does not exist.' % field_data)
+
+class ChangePassword (forms.Manipulator):
+    ''' Has old password and 2 new password fields. Requires the user to be authenticated.'''
+    
+    def __init__(self):
+        self.fields = (
+            forms.PasswordField(field_name='old_password',
+                             length=30,
+                             maxlength=30,
+                             is_required=True),
+            forms.PasswordField(field_name='password1',
+                                length=30,
+                                maxlength=60,
+                                is_required=True),
+            forms.PasswordField(field_name='password2',
+                                length=30, maxlength=60,
+                                is_required=True,
+                                validator_list=[validators.AlwaysMatchesOtherField('password1',
+                                                                                   'Passwords must match.')]),
+            )
