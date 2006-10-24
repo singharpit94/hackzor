@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponseRedirect, HttpResponse
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
+from django.db.models import Q
 
 from hackzor import settings
 from hackzor.server.models import Question, Attempt, UserProfile, Language, ToBeEvaluated
@@ -203,11 +204,12 @@ def search_questions (request):
     if request.GET:
         beenthere=True
         data = request.GET.copy()
-        keywords = data.getlist ('search_text')
+        keywords = data.getlist ('search_text')[0]
         if keywords:
-            result = Question.objects.filter(text__icontains=keywords[0])
+            keywords = keywords.split()
+            result = Question.objects.filter( Q(text__icontains=keywords[0]) | Q(name__icontains=keywords[0]) )
             for k in keywords[1:]:
-                result = result.get(text__icontains=k)
+                result = result.filter( Q(text__icontains=k) | Q(name__icontains=k) )
                 if result.count() == 0:
                     break
 
