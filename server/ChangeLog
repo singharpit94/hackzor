@@ -1,3 +1,9 @@
+2006-10-24  Ravi Shankar  <ravehanker@gmail.com>
+
+	* views.py(search_questions): changed get method to filter for extracting
+	multiple results.
+	Added code to search title
+
 2006-10-23  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* models.py (ToBeEvaluated, BeingEvaluated): Changed Pending Model to
