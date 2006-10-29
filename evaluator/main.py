@@ -12,8 +12,8 @@ try:
     from hackzor.settings import MEDIA_ROOT
     from server.models import Attempt, ToBeEvaluated, BeingEvaluated
 except ImportError:
-    C_COMPILE_STR = 'gcc -lm \'%i\' -o \'%o\''
-    CPP_COMPILE_STR = 'g++ -lm \%i\' -o \'%o\''
+    C_COMPILE_STR = 'gcc -lm -w \'%i\' -o \'%o\''
+    CPP_COMPILE_STR = 'g++ -lm -w \%i\' -o \'%o\''
     JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
     WORK_DIR = 'evaluator/work_files'
 
@@ -39,19 +39,19 @@ class Evaluator:
 
     def run (self, cmd, input_file):
         output_file = tempfile.NamedTemporaryFile ()
-        kws = {'shell':True}
         input_file = os.path.join (MEDIA_ROOT,input_file)
-        #.replace('____',''))
         print 'Input File: ',input_file
         print 'Output File: ',output_file.name
-        cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
+        #cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
+        inp_file = open (input_file,'r')
+        kws = {'shell':True, 'stdin':inp_file, 'stdout':output_file.file}
         start_time = time.time()
         p = subprocess.Popen (cmd, **kws)
         while True:
             if time.time() - start_time >= 5:
-                # TODO: Rework!! Shitty Method used. Run without starting Shell
-                os.kill (p.pid+1, signal.SIGTERM)
-                print 'Killed '+str(p.pid+1)
+                #os.kill (pid, signal.SIGTERM)
+                os.system ('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
+                print 'Killed Process Tree: '+str(pid)
                 raise EvaluatorError ('Time Limit Expired')
             elif p.poll() != None:
                 break
@@ -59,8 +59,10 @@ class Evaluator:
         if p.returncode != 0:
             raise EvaluatorError ('Run-Time Error')
         else:
-            output = output_file.file.read()
-            output_file.close()
+            output_file.file.flush ()
+            output_file.file.seek (0)
+            output = output_file.file.read ()
+            output_file.close ()
         return output
 
     def save_file (self, file_path, contents):
@@ -235,6 +237,7 @@ class Client (threading.Thread):
             evaluator = self.evaluators[lang]()
             result = evaluator.evaluate(attempt)
             attempt.user.score += self.score (result, attempt.question.score)
+            attempt.user.save()
             return result
         except KeyError:
             raise NotImplementedError ('Language '+lang+' not supported')
