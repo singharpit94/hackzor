@@ -1,0 +1,11 @@
+2006-10-29  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* evaluator/main.py (Evaluator.run): Corrected the TLE function to
+	actually kill the program itself and not just the shell.
+	Added Piping of Input and output directly from the program and not
+	from shell
+
+2006-10-27  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* evaluator/main.py (Client.evaluate): Added Saving the Score! Was
+	a Bug.
