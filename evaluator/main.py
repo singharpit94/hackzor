@@ -51,7 +51,7 @@ class Evaluator:
             if time.time() - start_time >= 5:
                 #os.kill (pid, signal.SIGTERM)
                 os.system ('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
-                print 'Killed Process Tree: '+str(pid)
+                print 'Killed Process Tree: '+str(p.pid)
                 raise EvaluatorError ('Time Limit Expired')
             elif p.poll() != None:
                 break
