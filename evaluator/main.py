@@ -42,14 +42,14 @@ class Evaluator:
         input_file = os.path.join (MEDIA_ROOT,input_file)
         print 'Input File: ',input_file
         print 'Output File: ',output_file.name
-        #cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
+        # cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
         inp_file = open (input_file,'r')
         kws = {'shell':True, 'stdin':inp_file, 'stdout':output_file.file}
         start_time = time.time()
         p = subprocess.Popen (cmd, **kws)
         while True:
             if time.time() - start_time >= 5:
-                #os.kill (pid, signal.SIGTERM)
+                # os.kill (pid, signal.SIGTERM)
                 os.system ('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
                 print 'Killed Process Tree: '+str(p.pid)
                 raise EvaluatorError ('Time Limit Expired')
@@ -208,8 +208,10 @@ class Client (threading.Thread):
         try:
             attempt = ToBeEvaluated.objects.all()[0]
             to_be_eval = BeingEvaluated(attempt=attempt.attempt)
-            attempt.delete()
             to_be_eval.save()
+            # TODO: The attempt exists in both queues at this point of
+            # time. Rectify.
+            attempt.delete()
             return to_be_eval
         except IndexError:
             return None
@@ -223,6 +225,8 @@ class Client (threading.Thread):
             time.sleep (1)
 
     def score (self, result, score):
+        """Apply a function on the result to generate the score.. in case you
+        want to have step wise scoring"""
         if result == True:
             return score
         else:
@@ -254,6 +258,12 @@ class Client (threading.Thread):
             print 'EvaluatorError: '
             print sys.exc_info()[1].error
             return_value = False
+        attempt.attempt.result = return_value
+        attempt.attempt.save()
+        # The Attempt continues to remain in the DB. In case you want to delete
+        # the attempt from the DB (for scalability purposes perhaps?) then
+        # uncomment the next line.
+        # attempt.attempt.delete()        
         attempt.delete()
         print 'Final Result: ', return_value
         return return_value
