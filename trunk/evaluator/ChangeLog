@@ -1,3 +1,7 @@
+2006-11-18  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py (Client.run): Setting the evaluator ruling in the Attempt.
+
 2006-10-29  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* evaluator/main.py (Evaluator.run): Corrected the TLE function to
