@@ -16,10 +16,11 @@ from hackzor.server.models import Question, Attempt, UserProfile, Language, ToBe
 from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution, ForgotPassword, ChangePassword
 from hackzor.evaluator.main import Client
 
-@login_required
 def viewProblem (request, id):
+    """ Simple view to display view a particular problem 
+    id : the primary key(id) of the Problem requested """
     path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
-    object = Question.objects.get(id=id)
+    object = get_object_or_404(Question, id=id)
     inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
     out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
     testCase = [x for x in zip(inp, out)]
@@ -28,7 +29,7 @@ def viewProblem (request, id):
                                'user': request.user})
 
 def register(request):
-    # TODO: Make this a decorator after cleaning up the template
+    """ creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user"""
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
          return render_to_response('simple_message.html', {'message' :"You are already registered."} )
@@ -37,6 +38,7 @@ def register(request):
     
     if request.POST:
         new_data = request.POST.copy()
+        #TODO: Clean up the user objects (at some point of time) to  release accounts which were never activated
         errors = manipulator.get_validation_errors(new_data)
         if not errors:
             # Save the user
@@ -76,6 +78,8 @@ def register(request):
 
 
 def confirm (request, activation_key):
+    """ Activates an inactivated account 
+    activation_key : The key created for the user during registration"""
     if request.user.is_authenticated():
         return render_to_response('simple_message.html', {'message' : 'You are already registerd!'})
     user_profile = get_object_or_404(UserProfile,
@@ -98,6 +102,8 @@ def logout_view (request):
 
 def forgot_password(request):
     ''' Sends mail to user on reset passwords '''
+    if request.user.is_authenticated():
+        return render_to_response('simple_message.html', {'message' : 'You already know your password. Use Change password to change your existing password'})
 
     manipulator = ForgotPassword()
 
@@ -149,6 +155,7 @@ def change_password(request):
             user = request.user
             if user.check_password(new_data['old_password']):
                 user.set_password(new_data['password1'])
+                #TODO: The Navibar goes crazy after this, find out the reason
                 user.save()
                 return render_to_response('simple_message.html', {'message' : 'Password Changed!'})
             else:
@@ -164,7 +171,8 @@ def change_password(request):
 
 @login_required
 def submit_code (request, problem_no=None):
-    """ Handles Submitting problem. Gets User identity from sessions. requires an authenticated user"""
+    """ Handles Submitting problem. Gets User identity from sessions. requires an authenticated user
+    problem_no : The primary key(id) of the problem for which the code is being submitted """
     manipulator = SubmitSolution()
 
     if request.POST:
@@ -176,11 +184,8 @@ def submit_code (request, problem_no=None):
 
             content  = request.FILES['file_path']['content']
             user     = get_object_or_404(UserProfile, user=request.user)
-            print 'user'
             question = get_object_or_404(Question, id=new_data['question_id'])
-            print 'question'
             language = get_object_or_404(Language, id=new_data['language_id'])
-            print 'language'
             attempt  = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.save()
             pending  = ToBeEvaluated (attempt=attempt)
