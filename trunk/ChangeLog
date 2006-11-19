@@ -1,3 +1,7 @@
+2006-11-19  Ravi Shankar <ravehanker@gmail.com>
+
+	* settings.py(ADMINS): updated with admin details
+
 2006-10-23  Ravi Shankar  <ravehanker@gmail.com>
 
 	* settings.py(CONTEST_URL): Added

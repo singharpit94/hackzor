@@ -2,18 +2,6 @@ from django.contrib.auth.models import User
 from django.db import models
 import os
 
-class UserProfile(models.Model):
-    """ Contains details about the user """
-    # TODO: Change this to self.name and have special method for activation key
-    def __str__(self):
-        return self.user.get_full_name()
-    
-    score = models.PositiveIntegerField(default=0)
-    activation_key = models.CharField(maxlength=40)
-    key_expires = models.DateTimeField() 
-    user = models.OneToOneField(User)
-    class Admin: pass
-
 class Question(models.Model):
     """ Contains the question content and path to evaluators and test cases """
     def __str__(self):
@@ -21,13 +9,28 @@ class Question(models.Model):
     
     name = models.CharField(maxlength=32)
     text = models.TextField()
+    #TODO:input testcases are visible to the user, put them into some safe place 
     test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
     test_output = models.FileField(upload_to= 'hidden/evaluators/testCases/')
     evaluator_path = models.FileField(upload_to = 'hidden/evaluators/pyCode/')
     score = models.IntegerField()
     class Admin: pass
 
+class UserProfile(models.Model):
+    """ Contains details about the user """
+    def __str__(self):
+        return self.user.get_full_name()
+    
+    score = models.PositiveIntegerField(default=0)
+    activation_key = models.CharField(maxlength=40)
+    key_expires = models.DateTimeField() 
+    user = models.OneToOneField(User)
+    solved = models.ManyToManyField(Question)
+    class Admin: pass
+
 class Language(models.Model):
+    """ Contains only the language name for now, should contain the compiler name later
+    ( helpful incase we need to rejudge all submission on a previous version ) """
     def __str__(self):
         return self.compiler
     

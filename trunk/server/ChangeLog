@@ -1,3 +1,19 @@
+2006-11-19  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py, forms.py: Added Doc Strings to views
+
+	* views.py (viewProblem): View now throws 404 if parameter id is not a valid
+	primry key
+
+	* views.py(forgot_password): Added authentication check
+
+	* models.py (UserProfile): Added solved ManyToManyField 
+
+
+2006-11-18  Ravi Shankar <ravehanker@gmail.com>
+
+	* models.py(UserProfile): Add a ManyToManyField for Solved Questions
+
 2006-10-24  Ravi Shankar  <ravehanker@gmail.com>
 
 	* views.py(search_questions): changed get method to filter for extracting

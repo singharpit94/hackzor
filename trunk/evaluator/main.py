@@ -10,7 +10,7 @@ import time
 try:
     from hackzor.evaluator.settings import *
     from hackzor.settings import MEDIA_ROOT
-    from server.models import Attempt, ToBeEvaluated, BeingEvaluated
+    from server.models import Attempt, ToBeEvaluated, BeingEvaluated, Question
 except ImportError:
     C_COMPILE_STR = 'gcc -lm -w \'%i\' -o \'%o\''
     CPP_COMPILE_STR = 'g++ -lm -w \%i\' -o \'%o\''
@@ -27,7 +27,9 @@ class EvaluatorError (Exception):
         return 'Error: '+self.error+'\tValue: '+ self.value
 
 
+#TODO: Write about the parameter to methods in each of their doc strings
 class Evaluator:
+    """ Abstract Evaluator Class """
     def __str__ (self):
         raise NotImplementedError ('Must be Overridden')
 
@@ -49,8 +51,8 @@ class Evaluator:
         p = subprocess.Popen (cmd, **kws)
         while True:
             if time.time() - start_time >= 5:
-                # os.kill (pid, signal.SIGTERM)
-                os.system ('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
+                os.kill (p.pid, signal.SIGTERM)
+                #os.system ('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
                 print 'Killed Process Tree: '+str(p.pid)
                 raise EvaluatorError ('Time Limit Expired')
             elif p.poll() != None:
@@ -190,6 +192,7 @@ class Python_Evaluator (Evaluator):
 
 class Client (threading.Thread):
     """ The Evaluator will evaluate and update the status """
+    #TODO: Avoid HardCoding Language Options
     evaluators = {'c':C_Evaluator, 'c++':CPP_Evaluator,
                   'java':Java_Evaluator, 'python':Python_Evaluator}
     
@@ -233,15 +236,28 @@ class Client (threading.Thread):
             return 0
 
     def evaluate (self, attempt):
-        """ Evaluate the attempt and return the ruling :-) """
+        """ Evaluate the attempt and return the ruling :-) 
+            attempt : An instance of the Attempt Class
+            return value : Boolean, the result of the evaluation.
+            """
         lang = attempt.language.compiler.lower()
         # first list special case languages whose names cannot be used for
         # function names in python
         try:
             evaluator = self.evaluators[lang]()
             result = evaluator.evaluate(attempt)
+
+            try:
+                attempt.user.solved.get(id=attempt.question.id)
+                raise EvaluatorError("Already Solved")
+            except Question.DoesNotExist:
+                pass
+
             attempt.user.score += self.score (result, attempt.question.score)
+            attempt.user.solved.add(attempt.question)
             attempt.user.save()
+            attempt.result = result
+            attempt.save()
             return result
         except KeyError:
             raise NotImplementedError ('Language '+lang+' not supported')
@@ -258,8 +274,6 @@ class Client (threading.Thread):
             print 'EvaluatorError: '
             print sys.exc_info()[1].error
             return_value = False
-        attempt.attempt.result = return_value
-        attempt.attempt.save()
         # The Attempt continues to remain in the DB. In case you want to delete
         # the attempt from the DB (for scalability purposes perhaps?) then
         # uncomment the next line.

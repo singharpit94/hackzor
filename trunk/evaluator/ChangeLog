@@ -1,3 +1,13 @@
+2006-11-19  Ravi Shankar <ravehanker@gmail.com>
+
+	* main.py : Added doc strings to classes
+
+	* main.py (Evaluator.run): Changed the way the method kills the subprocess
+
+	* main.py (Client.evaluate): Fixed the Multiple-Submit Scoring Bug
+	* main.py (Client.run): Moved attempt's result-updation code to
+	Client.evaluate
+
 2006-11-18  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* main.py (Client.run): Setting the evaluator ruling in the Attempt.

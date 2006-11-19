@@ -45,6 +45,7 @@ class RegistrationForm (forms.Manipulator):
             )
     
     def isValidUsername (self, field_data, all_data):
+        """ Checks if there is an already existing username and raises error if so"""
         try:
             User.objects.get(username=field_data)
         except User.DoesNotExist:
@@ -52,6 +53,7 @@ class RegistrationForm (forms.Manipulator):
         raise validators.ValidationError('The username "%s" is already taken.' % field_data)
 
     def isValidEmail (self, field_data, all_data):
+        """ Checks if there is an already existing email and raises error if so"""
         try:
             User.objects.get(email=field_data)
         except User.DoesNotExist:
@@ -59,6 +61,7 @@ class RegistrationForm (forms.Manipulator):
         raise validators.ValidationError('The email "%s" is already registered.' % field_data)
         
     def save(self, new_data):
+        """ Saves The user object into the database with score set to 0 and is_active set to false"""
         u = User.objects.create_user(new_data['username'],
                                      new_data['email'],
                                      new_data['password1'])
@@ -121,6 +124,7 @@ class ForgotPassword (forms.Manipulator):
                             validator_list=[self.userExists]),
                             )
     def userExists(self, field_data, all_data):
+        """ Checks if a user by the username exists and raises and error if not """
         try:
             User.objects.get(username=field_data)
         except User.DoesNotExist:
