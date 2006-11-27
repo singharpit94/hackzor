@@ -1,3 +1,18 @@
+2006-11-27  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py: Removed dependancies on server application.  Added
+	classes locally for Question, Attempt.
+	(Questions): This is a class which contains the dictionary
+	questions.
+	(XMLParser): This class will be a base class providing functions
+	for dealing with XML files (the basis for the distributed
+	architecture)
+	(Client): Removing queue_not_empty and dequeue_attempts since, the
+	design of hackzor is to use a distributed one. These operations
+	will be done at the web-server rather than the distributed
+	evaluators. Threading has also been removed since we want the
+	evaluator to evaluate only 1 attempt at a point of time.
+	
 2006-11-19  Ravi Shankar <ravehanker@gmail.com>
 
 	* main.py : Added doc strings to classes

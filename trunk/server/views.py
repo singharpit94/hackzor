@@ -12,9 +12,10 @@ from django.utils.datastructures import MultiValueDict
 from django.db.models import Q
 
 from hackzor import settings
-from hackzor.server.models import Question, Attempt, UserProfile, Language, ToBeEvaluated
-from hackzor.server.forms import RegistrationForm, LoginForm, SubmitSolution, ForgotPassword, ChangePassword
+from hackzor.server.models import *
+from hackzor.server.forms import *
 from hackzor.evaluator.main import Client
+import hackzor.server.utils as utils
 
 def viewProblem (request, id):
     """ Simple view to display view a particular problem 
@@ -23,16 +24,17 @@ def viewProblem (request, id):
     object = get_object_or_404(Question, id=id)
     inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
     out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
-    testCase = [x for x in zip(inp, out)]
+    #testCase = [x for x in zip(inp, out)]
     return render_to_response('view_problem.html',
-                              {'object':object, 'testCase':testCase,
+                              {'object':object, #'testCase':testCase,
                                'user': request.user})
 
 def register(request):
     """ creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user"""
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
-         return render_to_response('simple_message.html', {'message' :"You are already registered."} )
+         return render_to_response('simple_message.html',
+                                   {'message' :"You are already registered."})
 
     manipulator = RegistrationForm()
     
@@ -59,8 +61,12 @@ def register(request):
             # Send an email with the confirmation link
             # TODO: Store the message in a seperate file or DB
             email_subject = 'Your new Hackzor account confirmation'
-            email_body = 'Hello, %s, and thanks for signing up for an %s account!\n\nTo activate your account, click this link within 48 hours:\n\n \
-                    http://%s/accounts/confirm/%s' % (request.user.username, settings.CONTEST_NAME, settings.CONTEST_URL, new_profile.activation_key)
+            email_body = ('Hello, %s, and thanks for signing up for an %s ' +
+                          'account!\n\nTo activate your account, click this ' +
+                          'link within 48 hours:\n\n ' +
+                          'http://%s/accounts/confirm/%s' %
+                          (request.user.username, settings.CONTEST_NAME,
+                           settings.CONTEST_URL, new_profile.activation_key))
             
             send_mail(email_subject,
                       email_body,
@@ -68,7 +74,9 @@ def register(request):
                       [new_user.email])
             
             return render_to_response('simple_message.html', 
-            {'message' : 'A mail has been sent to %s. Follow the link in the mail to activate your account' %(new_user.email) })
+                                      {'message' : 'A mail has been sent to ' +
+                                       '%s. Follow the link in the mail to ' +
+                                       'activate your account' %(new_user.email) })
         else:
             print 'Errors'
     else:
@@ -81,7 +89,8 @@ def confirm (request, activation_key):
     """ Activates an inactivated account 
     activation_key : The key created for the user during registration"""
     if request.user.is_authenticated():
-        return render_to_response('simple_message.html', {'message' : 'You are already registerd!'})
+        return render_to_response('simple_message.html',
+                                  {'message' : 'You are already registerd!'})
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
     #TODO : Prevent attacks by resetting the key when activated
@@ -89,11 +98,15 @@ def confirm (request, activation_key):
         u = user_profile.user
         user_profile.delete();
         u.delete()
-        return render_to_response('simple_message.html', {'message' : 'Your activation key has expired. Please register again'})
+        return render_to_response('simple_message.html',
+                                  {'message' : 'Your activation key has ' +
+                                   'expired. Please register again'})
     user_account = user_profile.user
     user_account.is_active = True
     user_account.save()
-    return render_to_response('simple_message.html', {'message' : 'Thou arth registered. Begin thy quest for glory!'})
+    return render_to_response('simple_message.html',
+                              {'message' : 'Thou arth registered. Begin thy ' +
+                               'quest for glory!'})
 
 
 def logout_view (request):
@@ -190,7 +203,7 @@ def submit_code (request, problem_no=None):
             attempt.save()
             pending  = ToBeEvaluated (attempt=attempt)
             pending.save()
-            Client().start()
+            #Client().start()
             return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
         else:
             print errors
@@ -219,3 +232,10 @@ def search_questions (request):
                     break
 
     return render_to_response('search_result.html', {'beenthere':beenthere, 'result':result})
+
+
+def retreive_attempt (request):
+    """ Get an attempt to be evaluated """
+    # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
+    attempt = utils.get_attempt()
+    
