@@ -1,0 +1,72 @@
+2006-11-19  Ravi Shankar <ravehanker@gmail.com>
+
+	* settings.py(ADMINS): updated with admin details
+
+2006-10-23  Ravi Shankar  <ravehanker@gmail.com>
+
+	* settings.py(CONTEST_URL): Added
+
+	* urls.py(urlpatterns): Added url for password reset and change password
+
+2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
+	* settings.py (SESSION_COOKIE_AGE): Added
+
+2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
+
+	* settings.py (CONTEST_URL): Added
+
+2006-10-17  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* settings.py (CONTEST_NAME, CONTEST_EMAIL): Added generic support
+	for Contest Name and Email ID
+	(SUPPORTED_LANGS): Added SUPPORTED_LANGS, which should be used to
+	populate the language field in code submission
+
+2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
+	* urls.py(urlpatterns): Added default home page
+	Added redirection from '/accounts/profile' to Home Page
+	Added Login and Logout Views
+	Added Registration And Admin views
+	
+	* settings.py(TEMPLATE_CONTEXT_PROCESSORS): Added newly
+
+2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
+
+	* urls.py (urlpatterns): Changed static serve - document_root from to
+	'/home/rave/Django/hackzor' to '' to accomodate previous change in
+	MEDIA_ROOT and MEDIA_URL
+
+	* media: Added
+
+2006-10-13  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* urls.py (urlpatterns): Added Account confirmation URL pattern
+
+2006-10-11  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* settings.py (TIME_ZONE): Changed to Asia/Calcutta
+	Removed some Hard coded paths
+	(MEDIA_ROOT): Changed from 'home/rave/Django/hackzor' to 'media'
+
+	* urls.py (urlpatterns): Moved admin interface here
+
+
+2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
+
+	* settings.py (MEDIA_ROOT): Changed from '' to 'home/rave/Django/hackzor'
+	(MEDIA_URL): Changed from '' to '/'
+	(TEMPLATE_DIRS): Added '/home/rave/Django/hackzor/server/templates'
+
+	* urls.py (urlpatterns):  Added translation for urls starting with
+	OPC to be mapped to server.urls. Added static serve module to
+	serve normal files( For use Until Development only! REMOVE BEFORE
+	DEPLOYMENT)
+	
+2006-09-22  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* Changelog: renamed judge app to server. Applied miscellaneous fixes
+
+2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
+
+	* Added Initial Build
+

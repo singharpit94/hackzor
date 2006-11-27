@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %} {{ block.super }} - Top Scorers {% endblock %}
+
+{% block content %} 
+	<h1> Showing Top 10 Scorers </h1>
+
+	<table border='1'>
+			<tr>
+				<th> User Name</td>
+				<th> Score </td>
+			</tr>
+		{% for user in object_list %}
+			<tr>
+				<td> {{ user.user.username }} </td>
+				<td> {{ user.score }} </td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

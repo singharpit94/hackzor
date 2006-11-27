@@ -1,0 +1,63 @@
+2006-10-24  Ravi Shankar <ravehanker@gmail.com>
+
+	* view_toppers.html: Added heading to table and score to user entries
+
+2006-10-23  Prashanth Mohan  <prashmohan@gmail.com>
+	
+	* search_result: Added
+
+2006-10-23  Ravi Shankar <ravehanker@gmail.com>
+	
+	* reset_password.html: Added
+	* change_password.html: Added
+
+	* base.html: removed tables and added css
+	Added Footer
+	Added links to "Change password" and "forgot password"
+	Added Top10 and search links
+
+	* search_result.html: Modified to accomodate changes in view
+
+	* view_toppers.html: Aded
+
+2006-10-21  Ravi Shankar <ravehanker@gmail.com>
+	
+	* confirm.html: Removed.
+	* simple_message.html: Added
+
+	* submit_code.html: removed action in <form>.
+	Changed question_name to question_id.
+	Added language_id.
+
+	* register.html: Added Error handling code using form.errors
+	corrected lable to label in first_name and password2
+	Added javascript to bring form.username into focus on load
+
+	* login.html: Added javascript to bring form.username into focus on load
+
+	* base.html: Added Submit and make Admin login common to all users
+	
+
+2006-10-16  Ravi Shankar <ravehanker@gmail.com>
+
+	* confirm.html: Cleaned up variables and added the user variable
+	* login.html: Cleaned up variables and added the form variable
+	* base.html: Added conditional display of login links
+
+	* submit_code.html: Added
+	* view_problem.html: Added Submit link
+
+
+2006-10-04  Ravi Shankar <ravehanker@gmail.com>
+
+	* base.html:
+		Changed side bar width frmo 10 to 15% and put in border 
+		Put in a bulleted list
+	
+	* view_problem.html:
+		Included a table to display test cases
+
+2006-09-24  Ravi Shankar <ravehanker@gmail.com>
+
+	* Added Initial Build
+

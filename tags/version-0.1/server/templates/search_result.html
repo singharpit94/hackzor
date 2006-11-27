@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+   <form method=GET>
+        <input type="text" id="id_search_text" name="search_text" value="{{ search_text }}"> <input type="submit" value="Search">
+        <script type='text/javascript'> document.getElementById('id_search_text').focus() </script>
+
+    <ul>
+        {% if not result and beenthere %}
+            <p>Sorry, No results match your query. Please try again</p>
+        {% else %}
+            {% for res in result %}
+                <li><a href="/opc/problems/{{ res.id }}">{{ res.name }} </a></li>
+            {% endfor %}
+        {% endif %}
+    </ul>
+{% endblock %}

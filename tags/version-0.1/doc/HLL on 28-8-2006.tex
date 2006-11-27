@@ -1,0 +1,53 @@
+\documentclass [12pt] {article}
+
+\textheight 650pt
+\textwidth 452pt
+\parskip 6pt plus 1pt 
+\parindent 3em
+\oddsidemargin 10pt
+\evensidemargin 10pt
+\topmargin -50pt
+\thispagestyle{empty}
+
+% 'st' 'nd' 'rd' 'th' superscripts for numbers
+\def\first{{\raise.5ex\hbox{\small st}}}
+\def\second{{\raise.5ex\hbox{\small nd}}}
+\def\third{{\raise.5ex\hbox{\small rd}}}
+\def\fourth{{\raise.5ex\hbox{\small th}}}
+
+\title{Design Objectives for Hackzor Version 0.10}
+\date{August 28, 2006}
+\author{Ravi Shankar \and Prashanth Mohan}
+
+\begin{document}
+\maketitle
+	\subsection{Objectives}
+	The following modules will be implemented in version 0.10 \\\\
+	\begin{tabular}{ll}
+		Registeration		&: With Minimal database design\\
+		Code Submission		&: Full Implementation\\
+		Compilation 		&: Optional Phase\\
+		Evaluation 		&: Support All Languages\\
+	\end{tabular}
+	\subsection{Modules}
+		It has been decided that Version 0.10 will have support for a single Web sever with Multiple Evalutors that connect to it.\\
+	\subsubsection{Server Side}
+		\begin{itemize}
+			\item Get the File
+			\item Add to queue with meta data
+			\item Wait for Evaluators
+			\item UpdateDb with Results
+		\end{itemize}
+	\subsubsection{Evaluator}
+		Evaluators will probably use some Encryption method to authenticate themselves with the Web Server.\\
+		\begin{itemize}
+			\item Connect to the Web Server
+			\item Choose the Job. The server is a passive member here and the Evaluator decides which job it will take up.
+			\item Compile if necessary
+			\item Execute
+			\item Log any info
+			\item Compare with author solution - It has been decided that the author would provide the solutions as Python RegEx for now, But this decision may change in the future
+			\item Return results
+		\end{itemize}
+	
+\end{document}

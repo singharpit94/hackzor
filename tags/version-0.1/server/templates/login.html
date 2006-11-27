@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block content %}
+
+{% if form.has_errors %}
+    <p> You Forms has Errors.</p>
+{% endif %}
+
+<form method="post" action=".">
+    <table>
+
+        {% if form.username.errors %}
+        <tr>
+            <td>
+                *** {{ form.username.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+        <tr><td><label for="id_username">Username:</label></td><td>{{ form.username }}</td></tr>
+        <script type='text/javascript'> document.getElementById('id_username').focus() </script>
+
+
+        {% if form.password.errors %}
+        <tr>
+            <td>
+                *** {{ form.password.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+        <tr><td><label for="id_password">Password:</label></td><td>{{ form.password }}</td></tr>
+
+
+        <tr><td></td><td><a href='/accounts/register/'>Register</a></td></tr>
+    </table>
+
+    <input type="submit" value="login" />
+    <input type="hidden" name="next" value="{{ next }}" />
+</form>
+{% endblock %}

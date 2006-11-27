@@ -1,0 +1,176 @@
+2006-11-19  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py, forms.py: Added Doc Strings to views
+
+	* views.py (viewProblem): View now throws 404 if parameter id is not a valid
+	primry key
+
+	* views.py(forgot_password): Added authentication check
+
+	* models.py (UserProfile): Added solved ManyToManyField 
+
+
+2006-11-18  Ravi Shankar <ravehanker@gmail.com>
+
+	* models.py(UserProfile): Add a ManyToManyField for Solved Questions
+
+2006-10-24  Ravi Shankar  <ravehanker@gmail.com>
+
+	* views.py(search_questions): changed get method to filter for extracting
+	multiple results.
+	Added code to search title
+
+2006-10-23  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* models.py (ToBeEvaluated, BeingEvaluated): Changed Pending Model to
+	ToBeEvaluated and also added BeingEvaluated Model
+
+	* views.py(search_questions): Added
+
+2006-10-23  Ravi Shankar  <ravehanker@gmail.com>
+
+	* views.py(register): added username to mail content
+	(confim): added authentication check.
+	changes template output to simple_message where needed
+	(forgot_password, change_password): Added
+	(search_questions): cleaned up and made it work with builtin queries
+
+	* form.py(ForgotPassword, ChangePassword): Added
+
+	* urls.py(urlpatterns): Added search and top10 urls
+
+2006-10-22  Ravi Shankar  <ravehanker@gmail.com>
+	
+	* models.py (Prending): Added
+	(Attempt): Added time_of_submit, file_name
+	* views.py(submit_code): Added code to put new submits in Pending.
+	Added code to include file_name
+
+2006-10-21  Ravi Shankar  <ravehanker@gmail.com>
+
+	* views.py (register) : changed rendering from register.html to
+	simple_message.html for boundary cases.
+	Made changes to mail format
+	(confirm) : changed rendering from confirm.html to simple_message.html.
+	added code to delete users whose key has expired
+
+	(submit_code): added code to throw 404 when for non-enistent object
+	queries.
+	Add functionality for correct problem to be selected by default in
+	template.
+	changed question_name to question_id and added langauge_id
+	removed id_question_name  from template parameter list.
+
+	* models.py (Question): added prefix hidden to FileUpload fields
+	Added 'score'.
+
+	(Language): Added
+	(Attempt): Added ForeignKey reference to Language
+
+	* urls.py(urlpatterns): Added plain submit url
+
+	* forms.py(RegistrationForm): Added selectfield for  language 
+
+
+
+2006-10-17  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* views.py (register): Register now sends personalised messages as
+	part of registration confirmation (based on contest name specified
+	in settings.py file)
+
+2006-10-16  Ravi Shankar  <ravehanker@gmail.com>
+	* views.py(viewProblem): Added Login required decorator
+	Added user object info to render_to_response dict
+	(register): Added authentication check
+	(login): removed. Will use django's login view
+	(logout_view): Added
+
+	(submit_code): Added Login required decorator
+	Fixed Upload-POST problem by adding request.FILES
+	Added Code to save all submissions in 'submits' dir with 
+	the username_probno	file name format
+
+	* models.py(Attempt.__str__): corrected 'self.user.alias' to
+	'self.user.user.username'
+	(Attempt.attempt_number): deleted
+	(Attempt.code_path): Added
+
+	* urls.py(urlpatterns): deleted admin, registeration, login views - moved to
+	'hackzor/urls.py'
+	Added Submit Solution view
+
+	* forms.py(SubmitSolution): Added
+
+
+2006-10-14  Ravi Shankar  <ravehanker@gmail.com>
+
+	* models.py (Question.test_input, Question.test_output,
+	Question.evaluator_path): changed relative
+	path from 'server/evaluators/X' to 'evaluators/X'
+
+	* views.py(viewProblem): Added path_to_media_prefix and changed values of
+	inp and out to point to the correct postions as path of media files have
+	been moved
+	(submit_code): Added
+
+	* evaluators: Deleted
+
+2006-10-13  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* forms.py (LoginForm): Added a Login form
+
+	* views.py (login): Added some initial login functionality. It is
+	NOT complete.
+
+	* urls.py (urlpatterns): Added registration URL pattern
+
+	* views.py (register): Added Registration View. Sends email to
+	user to confirm registration
+	(confirm): Registration Confirmation view added. Checks if
+	confirmation link is accessed within time frame
+
+	* models.py (UserProfile.activation_key): Extends the User
+	model. Contains the activation key and expiry date
+	(Question): changed testInput to test_input, testOutput to test_output and
+	evaluatorPath to evaluator_path
+
+	* forms.py (RegistrationForm): Added a registration form
+	(RegistrationForm.isValidUsername): username uniqueness
+	(RegistrationForm.isValidEmail): Only 1 id per email id
+
+2006-10-11  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* models.py: Cleaned up some formatting, changed tabs to spaces
+
+	* urls.py (urlpatterns): Moved admin interface rule to main
+	hackzor/urls.py
+
+2006-10-04  Ravi Shankar <ravehanker@gmail.com>
+	* views.py: Added the viewProblem view
+	* urls.py: Made changes to include viewProblem in the place of
+	generic view for '^problems/(?P<id>\d+)/$'
+	
+2006-09-24  Ravi Shankar <ravehanker@gmail.com>
+
+	* models.py: Added doc strings to models
+	(Question.testInput, Question.testOutput): Changed from
+	FilePathField to FileField with files uploaded to
+	'/server/evaluators/testCases' Modified testInput, testOutput and
+	evaluatorPath in class Question
+	(Question.evaluatorPath): Changed from FilePathField to FileField
+	with files uploaded to '/server/evaluators/pyCode'
+
+	* (Attempt.__str__) : Changed from 'self.user.alias' to
+	"self.user.alias + ':' + self.question.name"
+
+	* (urls.py): Added to build
+
+2006-09-22  Ravi Shankar <ravehanker@gmail.com>
+
+	* (ChangeLog): Added to build
+
+2006-09-22  Ravi Shankar  <ravehanker@gmail.com>
+
+	* Added Initial Build
+

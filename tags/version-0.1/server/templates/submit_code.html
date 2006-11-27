@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<table> <form enctype="multipart/form-data" name="Submit" method="POST">
+
+    {% if form.file_path.errors %}
+    <tr>
+        <td>
+            *** {{ form.file_path.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+        <td align="right"><label for="id_file_path">File Upload: </label></td>
+        <td>{{ form.file_path }} {{ form.file_path_file}} <p></td>
+    </tr>
+
+    {% if form.question_id.errors %}
+    <tr>
+        <td>
+            *** {{ form.question_id.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+            <td align="right"><label for="id_question_id">Question: </label></td>
+            <td>{{ form.question_id }}</td><p></td>
+    </tr>
+
+    {% if form.language_id.errors %}
+    <tr>
+        <td>
+            *** {{ form.language_id.errors|join:", " }}
+        </td>
+    </tr>
+    {% endif %}
+    <tr>
+            <td align="right"><label for="id_language_id">Language: </label></td>
+            <td>{{ form.language_id }}</td><p></td>
+    </tr>
+
+    <tr>
+            <td></td>
+            <td ><input type="submit" value="Submit"><p></td>
+    </tr>
+</form></table>
+
+{% endblock %}

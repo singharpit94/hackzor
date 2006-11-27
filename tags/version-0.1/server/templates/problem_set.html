@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block title %} {{ block.super }} - Problem Set {% endblock %}
+
+{% block content %}
+	<ul>
+		{% for obj in object_list %}
+			<li> <a href="/opc/problems/{{obj.id}}/">{{ obj.name }} </a>
+		{% endfor %}
+	</ul>
+{% endblock %}

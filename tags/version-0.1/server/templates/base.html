@@ -1,0 +1,58 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+    <head>
+        <link rel="stylesheet" href="/css/style.css" />
+        <title>{% block title %}Online Programming Contest{% endblock %}</title>
+    </head>
+
+    <body>
+
+        <div id="topbar">
+            {% block topbar%}	
+                <h1> Online Programming Contest</h1>
+            {% endblock %}
+        </div>
+
+        <div id="navibar">
+        {% block sidebar %}
+            <ul id="naviul">
+                <li><a href='/opc'>Home</a>
+                <li><a href='/opc/problems/'>Problem set</a>
+                <li><a href='/opc/top10/'>Top 10</a>
+                <li><a href='/opc/search/'>Search</a>
+                {% if object.id %}
+                    <li> <a href='/opc/problems/{{ object.id }}/submit/'>Submit</a>
+                {% else %}
+                    <li> <a href='/opc/problems/submit/'>Submit</a>
+                {% endif %}
+
+                {% if user.is_authenticated  %}
+                    <li><a href='/accounts/logout'>Logout</a>
+                    <li><a href='/accounts/changepassword/'>Change Password</a>
+                {% else %}
+                    <li><a href='/accounts/login/'>User Login</a>
+                    <li><a href='/accounts/resetpassword/'>Forgot Password?</a>
+                {% endif %}
+                    <li><a href='/admin/'>Admin Login</a>
+
+            </ul>
+        {% endblock %}
+        </div>
+
+        <div id="wrapper">
+            <div id="content">
+                {% block content %}
+                {% endblock %}
+            </div>
+        </div>
+        <div id="footer">
+            <ul> 
+                <li> No Images
+                <li> No Flash
+                <li> No Problem!
+            </ul>
+        </div>
+
+    </body>
+</html>
