@@ -7,10 +7,12 @@ import subprocess
 import tempfile
 import signal
 import time
+from xml.dom.minidom import parseString
+
 try:
     from hackzor.evaluator.settings import *
     from hackzor.settings import MEDIA_ROOT
-    from server.models import Attempt, ToBeEvaluated, BeingEvaluated, Question
+    #from server.models import Attempt, ToBeEvaluated, BeingEvaluated
 except ImportError:
     C_COMPILE_STR = 'gcc -lm -w \'%i\' -o \'%o\''
     CPP_COMPILE_STR = 'g++ -lm -w \%i\' -o \'%o\''
@@ -27,9 +29,77 @@ class EvaluatorError (Exception):
         return 'Error: '+self.error+'\tValue: '+ self.value
 
 
-#TODO: Write about the parameter to methods in each of their doc strings
+<<<<<<< .mine
+class XMLParser:
+    """This base class will contain all the functions needed for the XML file
+    to be parsed
+    NOTE: This class is not to be instantiated
+    """
+    def __init__(self):
+        raise NotImplementedError ('XMLParser class is not to be instantiated')
+    
+    def get_val_by_id (self, xml_file, id):
+        """This function will get the value of the `id' child node of
+        `xml_file' node. `xml_file' should be of type DOM Element. e.g.
+        xml_file
+        |
+        |-- <id>value-to-be-returned</id>"""
+        
+        child_node = xml_file.getElementsByTagName (id)
+        if not child_node:
+            raise EvaluatorError ('Invalid XML file')
+        return child_node[0].nodeValue
+
+
+class Question(XMLParser):
+    """Defines the Characteristics of each question in the contest"""
+    def __init__(self, qn):
+        self.input_data = self.get_val_by_id (qn, 'input-data')
+        # TODO: Consider grouping all the contraint variables inside a `Limit'
+        # class
+        self.time_limit = float(self.get_val_by_id (qn, 'time-limit'))
+        self.mem_limit = int(self.get_val_by_id (qn, 'mem-limit')
+
+    
+class Questions(XMLParser):
+    """Set of all questions in the contest"""
+    def __init__(self, xml_file):
+        xml = parseString(xml_file)
+        qn_set = xml.getElementsByTagName('question-set')
+        if not qn_set:
+            #return error here
+            pass
+        self.questions = {}
+        for qn in qn_set:
+            questions[qn.getAttribute('id')] = Question (qn)
+            
+
+class Attempt(XMLParser):
+    """Each Attempt XML file is parsed by this class"""
+    def __init__(self, xml_file):
+        xml = parseString (xml_file)
+        attempt = xml.getElementsByTagName ('attempt')
+        if not attempt:
+            #return error here
+            pass
+        attempt = attempt[0]
+        self.aid = get_val_by_id (attempt, 'aid')
+        self.qid = get_val_by_id (attempt, 'qid')
+        self.code = get_val_by_id (attempt, 'code')
+        self.lang = get_val_by_id (attempt, 'lang')
+        self.file_name = get_val_by_id (attempt, 'file-name')
+        
+    def get_val_by_id (self, attempt, id):
+        child_node = attempt.getElementsByTagName (id)
+        if not child_node:
+            raise EvaluatorError ('Invalid XML file')
+        return child_node[0].nodeValue        
+        
+
+## TODO: Write about the parameter to methods in each of their doc strings
 class Evaluator:
-    """ Abstract Evaluator Class """
+    """Provides the base functions for evaluating an attempt.
+    NOTE: This class is not to be instantiated"""
     def __str__ (self):
         raise NotImplementedError ('Must be Overridden')
 
@@ -190,46 +260,50 @@ class Python_Evaluator (Evaluator):
         return 'python '+exec_file
     
 
-class Client (threading.Thread):
+class Client:# (threading.Thread):
     """ The Evaluator will evaluate and update the status """
     #TODO: Avoid HardCoding Language Options
     evaluators = {'c':C_Evaluator, 'c++':CPP_Evaluator,
                   'java':Java_Evaluator, 'python':Python_Evaluator}
     
     def __init__ (self):
-        threading.Thread.__init__ (self)
+        #threading.Thread.__init__ (self)
+        pass
 
-    def queue_not_empty (self):
-        """ Checks if the ToBeEvaluated queue is empty or not """
-        if ToBeEvaluated.objects.count > 0:
-            return True
-        return False
+#     def queue_not_empty (self):
+#         """ Checks if the ToBeEvaluated queue is empty or not """
+#         if ToBeEvaluated.objects.count > 0:
+#             return True
+#         return False
 
-    def dequeue_attempts (self):
-        """ Returns an attempt from the ToBeEvaluated queue based on priority
-        algorithms or return None if queue is empty """
-        try:
-            attempt = ToBeEvaluated.objects.all()[0]
-            to_be_eval = BeingEvaluated(attempt=attempt.attempt)
-            to_be_eval.save()
-            # TODO: The attempt exists in both queues at this point of
-            # time. Rectify.
-            attempt.delete()
-            return to_be_eval
-        except IndexError:
-            return None
+#     def dequeue_attempts (self):
+#         """ Returns an attempt from the ToBeEvaluated queue based on priority
+#         algorithms or return None if queue is empty """
+#         try:
+#             attempt = ToBeEvaluated.objects.all()[0]
+#             to_be_eval = BeingEvaluated(attempt=attempt.attempt)
+#             to_be_eval.save()
+#             # TODO: The attempt exists in both queues at this point of
+#             # time. Rectify.
+#             attempt.delete()
+#             return to_be_eval
+#         except IndexError:
+#             return None
     
     def get_attempt (self):
-        """ Keep polling the ToBeEvaluated queue until an attempt to be
-        evaluated is obtained """
-        while True:
-            if (self.queue_not_empty()):
-                return self.dequeue_attempts()
-            time.sleep (1)
+        """ Keep polling the server until an attempt to be evaluated is
+        obtained """
+        pass
+#         while True:
+#             if (self.queue_not_empty()):
+#                 return self.dequeue_attempts()
+#             time.sleep (1)
 
     def score (self, result, score):
         """Apply a function on the result to generate the score.. in case you
         want to have step wise scoring"""
+        ## TODO: The scoring logic should be moved into the question setter's
+        ## evaluator logic
         if result == True:
             return score
         else:
