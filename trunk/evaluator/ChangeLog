@@ -1,3 +1,8 @@
+2006-11-29  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py (Question.save_eval_to_disk): This function will
+	unpickle a file; the evaluator, sent from web server
+
 2006-11-27  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* main.py: Removed dependancies on server application.  Added
