@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block title %} {{ block.super }} - User Stats {% endblock %}
+
+{% block content %} 
+	<h1> {{object.username }}</h1><p>
+	Full Name : {{ object.firstname }}, {{ object.lastname }}
+	Score : {{ object.userprofile.score }}
+
+	<table border='1'>
+			<tr>
+				<th> Problem </td>
+				<th> Score </td>
+			</tr>
+		{% for prob in object.userprofile.solved.all %}
+			<tr>
+				<td> {{ prob.name }} </td>
+				<td> {{ prob.score }} </td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endblock %}

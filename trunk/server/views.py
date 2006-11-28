@@ -23,7 +23,7 @@ def viewProblem (request, id):
     path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
     object = get_object_or_404(Question, id=id)
     inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
-    out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
+    #out = open(os.path.join(path_to_media_prefix , object.test_output)).read().split('\n')
     #testCase = [x for x in zip(inp, out)]
     return render_to_response('view_problem.html',
                               {'object':object, #'testCase':testCase,
@@ -61,12 +61,11 @@ def register(request):
             # Send an email with the confirmation link
             # TODO: Store the message in a seperate file or DB
             email_subject = 'Your new Hackzor account confirmation'
-            email_body = ('Hello, %s, and thanks for signing up for an %s ' +
-                          'account!\n\nTo activate your account, click this ' +
+            email_body = ('Hello, %s, and thanks for signing up for an %s ' %(request.user.username, settings.CONTEST_NAME) +
+                          'account!\n\nTo activate your account, click this' +
                           'link within 48 hours:\n\n ' +
                           'http://%s/accounts/confirm/%s' %
-                          (request.user.username, settings.CONTEST_NAME,
-                           settings.CONTEST_URL, new_profile.activation_key))
+                          ( settings.CONTEST_URL, new_profile.activation_key))
             
             send_mail(email_subject,
                       email_body,
@@ -75,8 +74,8 @@ def register(request):
             
             return render_to_response('simple_message.html', 
                                       {'message' : 'A mail has been sent to ' +
-                                       '%s. Follow the link in the mail to ' +
-                                       'activate your account' %(new_user.email) })
+                                       '%s. Follow the link in the mail to ' %(new_user.email)+
+                                       'activate your account'  })
         else:
             print 'Errors'
     else:
@@ -194,14 +193,15 @@ def submit_code (request, problem_no=None):
         errors = manipulator.get_validation_errors(new_data)
         if not errors:
             manipulator.do_html2python(new_data)
-
             content  = request.FILES['file_path']['content']
-            user     = get_object_or_404(UserProfile, user=request.user)
+            
+            user = get_object_or_404(UserProfile, user=request.user)
             question = get_object_or_404(Question, id=new_data['question_id'])
+            result = False
             language = get_object_or_404(Language, id=new_data['language_id'])
-            attempt  = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
+            attempt = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.save()
-            pending  = ToBeEvaluated (attempt=attempt)
+            pending = ToBeEvaluated (attempt=attempt)
             pending.save()
             #Client().start()
             return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
@@ -235,7 +235,14 @@ def search_questions (request):
 
 
 def retreive_attempt (request):
-    """ Get an attempt to be evaluated """
+    """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    attempt = utils.get_attempt()
-    
+    attempt_xmlised = utils.get_attempt_as_xml()
+    return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
+
+def retreive_question_set (request):
+    """ Get the list of questions  as XML"""
+    # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
+    question_set_xmlised = utils.get_question_set_as_xml()
+    return HttpResponse (content = question_set_xmlised, 
+            mimetype = 'application/xml')
