@@ -1,6 +1,8 @@
 from hackzor.server.models import *
+from hackzor import settings
 import xml.dom.minidom as minidom
 import xml.dom.ext as ext
+import os, pickle, tempfile
 
 def queue_not_empty ():
     """ Checks if the ToBeEvaluated queue is empty or not """
@@ -21,12 +23,13 @@ def convert_attempt_to_xml (attempt):
     doc.appendChild(root)
     if not attempt:
         return ext.Print (doc)
-    add_node (doc, root, 'qid', attempt.question.id)
-    add_node (doc, root, 'aid', attempt.id) # aid = Attempt id
-    add_node (doc, root, 'code', attempt.code)
-    add_node (doc, root, 'lang', attempt.language)
-    add_node (doc, root, 'file-name', attempt.file_name)
-    return ext.Print (doc) # use ext.PrettyPrint when debugging
+    add_node (doc, root, 'qid', str(attempt.question.id))
+    add_node (doc, root, 'aid', str(attempt.id)) # aid = Attempt id
+    add_node (doc, root, 'code', str(attempt.code))
+    add_node (doc, root, 'lang', str(attempt.language))
+    add_node (doc, root, 'file-name', str(attempt.file_name))
+    #return ext.Print (doc) # use ext.PrettyPrint when debugging
+    return doc.toxml()
     
 def dequeue_attempts ():
     """ Returns an attempt from the ToBeEvaluated queue based on priority
@@ -42,9 +45,41 @@ def dequeue_attempts ():
     except IndexError:
         return None
 
-def get_attempt ():
+def get_attempt_as_xml ():
     if (queue_not_empty()):
-        return convert_to_xml(None)
+        return dequeue_attempts()
     else:
-        return dequeue_attempt()
+        return convert_attempt_to_xml(None)
 
+def get_question_set_as_xml():
+    qn_set = Question.objects.all()
+    doc = minidom.Document()
+    root = doc.createElementNS('http://code.google.com/p/hackzor',
+            'question-set')
+    doc.appendChild(root)
+    for qn in qn_set:
+                node = doc.createElement('question')
+    node.setAttribute('id', str(qn.id))
+    root.appendChild(node)
+    add_node(doc, node, 'time-limit', str(qn.time_limit))
+    add_node(doc, node, 'mem-limit', str(qn.memory_limit))
+    inp = open( os.path.join(settings.MEDIA_ROOT,qn.test_input), 'r')
+    add_node(doc, node, 'input-data', inp.read())
+    inp.close()
+
+    # Convert evaluator (May be binary into pickled data) and send along
+    # with xml
+    inp = open(os.path.join(settings.MEDIA_ROOT, qn.evaluator_path), 'r')
+    inp_data = inp.read()
+    inp.close()
+    inp = tempfile.NamedTemporaryFile()
+    pickle.dump(inp_data, inp.file)
+    inp.flush()
+    temp = open(inp.name, 'r').read()
+    inp.close()
+    cdata = doc.createCDATASection(temp)
+    eval_node = doc.createElement('evaluator')
+    node.appendChild(eval_node)
+    eval_node.appendChild(cdata)
+    del inp_data, inp
+    return doc.toxml()

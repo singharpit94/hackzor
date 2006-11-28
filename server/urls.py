@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User 
 from django.conf.urls.defaults import *
 from hackzor.server.models import Question, UserProfile
 
@@ -39,5 +40,23 @@ urlpatterns = patterns('',
         (r'^top10/$',
             'django.views.generic.list_detail.object_list',
             { 'queryset' : UserProfile.objects.order_by('score')[:10], 'template_name' : 'view_toppers.html' }),
+
+        # To display a particular user's Stats
+        #Not Finished!
+        # TODO: Use a shared dict called User_dict along with TOP 10
+        (r'^users/(?P<object_id>\d+)/$',
+        'django.views.generic.list_detail.object_detail',
+        { 'queryset' : User.objects.all(), 'template_name' : 'view_user.html'}),
+
+        # To get an Attempt
+        # TODO: To be used by Evaluator only!! Add encryption!
+        (r'^evaluator/getattempt/',
+         'hackzor.server.views.retreive_attempt',),
+
+        # To get Question set
+        # TODO: To be used by Evaluator only!! Add encryption!
+        (r'^evaluator/getquestionset/',
+         'hackzor.server.views.retreive_question_set',),
+
         )
 
