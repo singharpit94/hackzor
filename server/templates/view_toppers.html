@@ -12,7 +12,8 @@
 			</tr>
 		{% for user in object_list %}
 			<tr>
-				<td> {{ user.user.username }} </td>
+				<td> 
+                    <a href="/opc/users/{{user.user.id}}">{{user.user.username }}</a> </td>
 				<td> {{ user.score }} </td>
 			</tr>
 		{% endfor %}
