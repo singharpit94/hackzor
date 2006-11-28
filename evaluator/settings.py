@@ -10,5 +10,5 @@ C_COMPILE_STR = 'gcc -lm -w \'%i\' -o \'%o\''
 CPP_COMPILE_STR = 'g++ -lm -w \'%i\' -o \'%o\''
 JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
 
-WORK_DIR = 'evaluator/work_files'
+WORK_DIR = 'work_files'
 TIME_INTERVAL = 2 # Time between poll to web server for attempts (in seconds)

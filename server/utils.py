@@ -26,7 +26,7 @@ def convert_attempt_to_xml (attempt):
     add_node (doc, root, 'qid', str(attempt.question.id))
     add_node (doc, root, 'aid', str(attempt.id)) # aid = Attempt id
     add_node (doc, root, 'code', str(attempt.code))
-    add_node (doc, root, 'lang', str(attempt.language))
+    add_node (doc, root, 'lang', str(attempt.language.compiler))
     add_node (doc, root, 'file-name', str(attempt.file_name))
     #return ext.Print (doc) # use ext.PrettyPrint when debugging
     return doc.toxml()

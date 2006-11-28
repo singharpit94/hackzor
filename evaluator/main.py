@@ -8,19 +8,15 @@ import tempfile
 import signal
 import time
 import pickle
-from xml.dom.minidom import parseString
-import xml.dom.ext as ext
+import cookielib
+import urllib2
+import xml.dom.minidom as minidom
 
-try:
-    from hackzor.evaluator.settings import *
-    from hackzor.settings import MEDIA_ROOT
-    #from server.models import Attempt, ToBeEvaluated, BeingEvaluated
-except ImportError:
-    C_COMPILE_STR = 'gcc -lm -w \'%i\' -o \'%o\''
-    CPP_COMPILE_STR = 'g++ -lm -w \%i\' -o \'%o\''
-    JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
-    WORK_DIR = 'evaluator/work_files'
+from settings import *
 
+## Change this!!!
+MEDIA_ROOT = 'media'
+CONTEST_URL = 'http://127.0.0.1:8000'
 
 class EvaluatorError(Exception):
     def __init__(self, error, value=''):
@@ -49,9 +45,9 @@ class XMLParser:
         child_node = root.getElementsByTagName(id)
         if not child_node:
             raise EvaluatorError('Invalid XML file')
-        return child_node[0].nodeValue
+        return child_node[0].firstChild.nodeValue
 
-    def add_node(doc, root, child, value):
+    def add_node(self, doc, root, child, value):
         """ Used to add a text node 'child' with the value of 'value'(duh..) """
         node = doc.createElement(child)
         node.appendChild(doc.createTextNode(value))
@@ -60,21 +56,22 @@ class XMLParser:
     
 class Question(XMLParser):
     """Defines the Characteristics of each question in the contest"""
-    def __init__(self, qn):
+    def __init__(self, qn, qid):
         self.input_data = self.get_val_by_id(qn, 'input-data')
         # TODO: Consider grouping all the contraint variables inside a `Limit'
         # class
+        time_limit = self.get_val_by_id(qn, 'time-limit')
         self.time_limit = float(self.get_val_by_id(qn, 'time-limit'))
         self.mem_limit = int(self.get_val_by_id(qn, 'mem-limit'))
-        self.save_eval_to_disk(qn)
+        self.save_eval_to_disk(qn, qid)
 
-    def save_eval_to_disk(self, qn):
+    def save_eval_to_disk(self, qn, qid):
         """This function will unpickle the evaluator, sent from web server and
         save it into a file in the directory `evaluators' in the name of the
         question id"""
         # Save the pickled Evaluator binary to disk
-        evaluator = qn.getElementsByName('evaluator')[0].firstChild.nodeValue
-        self.eval_file_path = os.path.join('evaluators', qn.getAttribute('id'))
+        evaluator = qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue
+        self.eval_file_path = os.path.join('evaluators', qid)
         eval_file = open(self.eval_file_path, 'w')
         eval_file.write(evaluator)
         eval_file.close()
@@ -91,45 +88,42 @@ class Question(XMLParser):
 class Questions(XMLParser):
     """Set of all questions in the contest"""
     def __init__(self, xml_file):
-        xml = parseString(xml_file)
-        qn_set = xml.getElementsByTagName('question-set')
+        xml = minidom.parseString(xml_file)
+        qn_set = xml.getElementsByTagName('question-set')[0]
         if not qn_set:
             #return error here
             pass
         self.questions = {}
-        for qn in qn_set:
-            questions[qn.getAttribute('id')] = Question(qn)
+        for qn in qn_set.getElementsByTagName('question'):
+            qid = str(qn.getAttribute('id').strip())
+            self.questions[qid] = Question(qn, qid)
                         
 
 class Attempt(XMLParser):
     """Each Attempt XML file is parsed by this class"""
     def __init__(self, xml_file):
-        xml = parseString(xml_file)
+        xml = minidom.parseString(xml_file)
         attempt = xml.getElementsByTagName('attempt')
         if not attempt:
             #return error here
             pass
         attempt = attempt[0]
-        self.aid = get_val_by_id(attempt, 'aid')
-        self.qid = get_val_by_id(attempt, 'qid')
-        self.code = get_val_by_id(attempt, 'code')
-        self.lang = get_val_by_id(attempt, 'lang')
-        self.file_name = get_val_by_id(attempt, 'file-name')
+        print xml.toprettyxml()
+        self.aid = self.get_val_by_id(attempt, 'aid')
+        self.qid = self.get_val_by_id(attempt, 'qid')
+        self.code = self.get_val_by_id(attempt, 'code')
+        self.lang = self.get_val_by_id(attempt, 'lang')
+        self.file_name = self.get_val_by_id(attempt, 'file-name')
         
-    def get_val_by_id(self, attempt, id):
-        child_node = attempt.getElementsByTagName(id)
-        if not child_node:
-            raise EvaluatorError('Invalid XML file')
-        return child_node[0].nodeValue
 
     def convert_to_result(self, result):
         """Converts an attempt into a corresponding XML file to notify result"""
         doc = minidom.Document()
         root = doc.createElementNS('http://code.google.com/p/hackzor', 'attempt')
         doc.appendChild(root)
-        add_node(doc, root, 'aid', self.aid)
-        add_node(doc, root, 'result', str(result))
-        return ext.Print(doc)
+        self.add_node(doc, root, 'aid', self.aid)
+        self.add_node(doc, root, 'result', str(result))
+        return doc.toxml()
         
 ## TODO: Write about the parameter to methods in each of their doc strings
 class Evaluator:
@@ -144,14 +138,18 @@ class Evaluator:
     def get_run_cmd(self, exec_file):
         raise NotImplementedError('Must be Overridden')
 
-    def run(self, cmd, input_file):
+    def run(self, cmd, input):
         output_file = tempfile.NamedTemporaryFile()
-        input_file = os.path.join(MEDIA_ROOT,input_file)
-        print 'Input File: ',input_file
+        # TODO: Change here!!!
+        input_file = tempfile.NamedTemporaryFile()
+        print 'Input File: ',input_file.name
         print 'Output File: ',output_file.name
         # cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
-        inp_file = open(input_file,'r')
-        kws = {'shell':True, 'stdin':inp_file, 'stdout':output_file.file}
+        inp_file = open(input_file.name,'w')
+        inp_file.write (input)
+        inp_file.flush()
+        inp = open (inp_file.name, 'r')
+        kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
         start_time = time.time()
         p = subprocess.Popen(cmd, **kws)
         while True:
@@ -184,7 +182,7 @@ class Evaluator:
         open_file.close()
         return file_path
 
-    def evaluate(self, attempt):
+    def evaluate(self, attempt, quest):
         # Save the File
         save_loc = attempt.aid + '-' + attempt.qid + '-' + attempt.file_name
         code_file = self.save_file(save_loc, attempt.code)
@@ -202,10 +200,10 @@ class Evaluator:
         cmd = self.get_run_cmd(exec_file)
         
         # Execute the file for preset input
-        output = self.run(cmd, attempt.question.test_input)
+        output = self.run(cmd, quest.input_data)
 
         # Match the output to expected output
-        return self.check(attempt, output)
+        return True #self.check(attempt, output)
 
     def check(self, attempt, output):
         eval_path = os.path.join(MEDIA_ROOT, attempt.question.evaluator_path)
@@ -232,7 +230,7 @@ class C_Evaluator(Evaluator):
         # replace the code with the object file
         cmd = self.compile_cmd.replace('%i',code_file).replace('%o',output_file)
 
-       (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = commands.getstatusoutput(cmd)
         if status != 0:
             raise EvaluatorError('Compiler Error', output)
         else:
@@ -264,7 +262,7 @@ class Java_Evaluator(Evaluator):
         if file_name [-5:] != '.java':
             raise EvaluatorError('Compiler Error', 'Not a Java File')
         file_name = file_name [:-5]
-       (status, output) = commands.getstatusoutput(cmd)
+        (status, output) = commands.getstatusoutput(cmd)
         if status != 0:
             raise EvaluatorError('Compiler Error', output)
         else:
@@ -291,17 +289,17 @@ class Client:
     
     def __init__(self):
         key_id = '' # TODO: get key-id from GPG keyring
-        root_url = CONTEST_URL + '/evaluator/'+key_id
+        root_url = CONTEST_URL + '/opc/evaluator'+key_id
         self.get_attempt_url = root_url + '/getattempt'
-        self.submit_attempt_url_select = '/evaluator/'+key_id + '/submitattempt'
-        self.get_qns = root_url + '/getquestions'
+        self.submit_attempt_url = root_url + '/submitattempt/'
+        self.get_qns = root_url + '/getquestionset'
         cj = cookielib.CookieJar()
         self.cookie_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        urllib2.install_opener(cookie_opener)
+        urllib2.install_opener(self.cookie_opener)
 
         # Initialise the question Table
         req = urllib2.Request(self.get_qns, None)
-        self.question_set = Questions(req.read())
+        self.question_set = Questions(urllib2.urlopen(req).read())
     
     def get_attempt(self):
         """ Keep polling the server until an attempt to be evaluated is
@@ -320,17 +318,19 @@ class Client:
         else:
             return 0
 
-    def evaluate(self, attempt):
+    def evaluate(self, attempt, quest):
         """ Evaluate the attempt and return the ruling :-) 
             attempt : An instance of the Attempt Class
             return value : Boolean, the result of the evaluation.
-            """
+        """
+        print 'lang:',attempt.lang, type(attempt.lang)
         lang = attempt.lang.lower()
         # first list special case languages whose names cannot be used for
         # function names in python
         try:
             evaluator = self.evaluators[lang]()
-            return evaluator.evaluate(attempt)
+            print 'Calling evalute'
+            return evaluator.evaluate(attempt, quest)
         except KeyError:
             raise NotImplementedError('Language '+lang+' not supported')
 
@@ -339,7 +339,7 @@ class Client:
         selector = self.submit_attempt_url_select
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
-        r = urllib2.Request("http://%s%s" %(host, selector), body, headers)
+        r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
         return urllib2.urlopen(r).read()        
         
     def start(self):
@@ -352,14 +352,14 @@ class Client:
                 continue
             # evalute the attempt
             try:
-                return_value = self.evaluate(attempt)
+                print self.question_set.questions.keys()
+                return_value = self.evaluate(attempt, self.question_set.questions[str(attempt.qid)])
             except EvaluatorError:
                 print 'EvaluatorError: '
                 print sys.exc_info()[1].error
                 return_value = False
             print 'Final Result: ', return_value
             self.submit_attempt(attempt.convert_to_result(return_value))
-            # TODO: Convert this into a suitable result XML file and respond
         return return_value
 
 
