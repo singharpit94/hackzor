@@ -53,6 +53,11 @@ urlpatterns = patterns('',
         (r'^evaluator/getattempt/',
          'hackzor.server.views.retreive_attempt',),
 
+        # To submit result of an Attempt
+        # TODO: To be used by Evaluator only!! Add encryption!
+        (r'^evaluator/submitattempt/',
+         'hackzor.server.views.submit_attempt',),
+
         # To get Question set
         # TODO: To be used by Evaluator only!! Add encryption!
                        (r'^evaluator/getquestionset/',

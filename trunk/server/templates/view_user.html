@@ -4,7 +4,7 @@
 
 {% block content %} 
 	<h1> {{object.username }}</h1><p>
-	Full Name : {{ object.firstname }}, {{ object.lastname }}
+	Full Name : {{ object.first_name }}, {{ object.last_name }}
 	Score : {{ object.userprofile.score }}
 
 	<table border='1'>
@@ -14,7 +14,7 @@
 			</tr>
 		{% for prob in object.userprofile.solved.all %}
 			<tr>
-				<td> {{ prob.name }} </td>
+				<td> <a href="/opc/problems/{{ prob.id }}"> {{ prob.name }}	</a></td>
 				<td> {{ prob.score }} </td>
 			</tr>
 		{% endfor %}

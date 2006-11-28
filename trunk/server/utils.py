@@ -49,7 +49,8 @@ def get_attempt_as_xml ():
     if (queue_not_empty()):
         return dequeue_attempts()
     else:
-        return convert_attempt_to_xml(None)
+        print "Attempt Queue Empty"
+        return None
 
 def get_question_set_as_xml():
     qn_set = Question.objects.all()
@@ -83,3 +84,23 @@ def get_question_set_as_xml():
     eval_node.appendChild(cdata)
     del inp_data, inp
     return doc.toxml()
+
+def get_val_by_id (root, id):
+    child_node = root.getElementsByTagName(id)
+    if not child_node:
+        raise EvaluatorError('Invalid XML file')
+    return child_node[0].firstChild.nodeValue
+
+def deconvert_xmlised_attempt_result(xmlised_result):
+    """Each Attempt XML file is parsed by this class"""
+    xml = minidom.parseString(xmlised_result)
+    attempt = xml.getElementsByTagName('attempt')
+    if not attempt:
+                    #return error here
+        pass
+    attempt = attempt[0]
+    print xml.toprettyxml()
+    aid = get_val_by_id(attempt, 'aid')
+    result = get_val_by_id(attempt, 'result')
+    print 'aid :',aid, 'result :', result
+    return (aid, result)

@@ -6,7 +6,7 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 from django.db.models import Q
@@ -238,11 +238,23 @@ def retreive_attempt (request):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     attempt_xmlised = utils.get_attempt_as_xml()
+    if not attempt_xmlised:
+        raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
 
 def retreive_question_set (request):
     """ Get the list of questions  as XML"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
+    print "Qs Done!---------------------------------------------"
     question_set_xmlised = utils.get_question_set_as_xml()
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
+
+def submit_attempt (request):
+    """ Get evaluated result and update DB """
+    if request.POST:
+        xml_data = request.raw_post_data
+        aid, result = utils.deconvert_xmlised_attempt_result(xml_data)
+        print aid, result
+        #TODO: Further Processing
+    return HttpResponse("Done!")

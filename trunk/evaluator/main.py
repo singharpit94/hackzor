@@ -71,7 +71,7 @@ class Question(XMLParser):
         question id"""
         # Save the pickled Evaluator binary to disk
         evaluator = qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue
-        self.eval_file_path = os.path.join('evaluators', qid)
+        self.eval_file_path = os.path.join('evaluator', qid)
         eval_file = open(self.eval_file_path, 'w')
         eval_file.write(evaluator)
         eval_file.close()
@@ -290,9 +290,9 @@ class Client:
     def __init__(self):
         key_id = '' # TODO: get key-id from GPG keyring
         root_url = CONTEST_URL + '/opc/evaluator'+key_id
-        self.get_attempt_url = root_url + '/getattempt'
+        self.get_attempt_url = root_url + '/getattempt/'
         self.submit_attempt_url = root_url + '/submitattempt/'
-        self.get_qns = root_url + '/getquestionset'
+        self.get_qns = root_url + '/getquestionset/'
         cj = cookielib.CookieJar()
         self.cookie_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
         urllib2.install_opener(self.cookie_opener)
@@ -336,7 +336,8 @@ class Client:
 
     def submit_attempt(self, attempt_xml):
         host = CONTEST_URL
-        selector = self.submit_attempt_url_select
+        #selector = self.submit_attempt_url_select
+        selector = self.submit_attempt_url
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
@@ -345,7 +346,11 @@ class Client:
     def start(self):
         print 'Evaluator Started'
         while True:
-            attempt = self.get_attempt()
+            #TODO: Temporary hack for catching 404, Corrrect it later
+            try:
+                attempt = self.get_attempt()
+            except urllib2.HTTPError:
+                attempt = None
             if attempt == None:
                 # No attempts in web server queue to evaluate
                 time.sleep(TIME_INTERVAL)
