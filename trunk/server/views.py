@@ -14,7 +14,7 @@ from django.db.models import Q
 from hackzor import settings
 from hackzor.server.models import *
 from hackzor.server.forms import *
-from hackzor.evaluator.main import Client
+#from hackzor.evaluator.main import Client
 import hackzor.server.utils as utils
 
 def viewProblem (request, id):

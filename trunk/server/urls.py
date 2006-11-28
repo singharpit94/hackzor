@@ -55,7 +55,7 @@ urlpatterns = patterns('',
 
         # To get Question set
         # TODO: To be used by Evaluator only!! Add encryption!
-        (r'^evaluator/getquestionset/',
+                       (r'^evaluator/getquestionset/',
          'hackzor.server.views.retreive_question_set',),
 
         )
