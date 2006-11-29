@@ -245,7 +245,6 @@ def retreive_attempt (request):
 def retreive_question_set (request):
     """ Get the list of questions  as XML"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    print "Qs Done!---------------------------------------------"
     question_set_xmlised = utils.get_question_set_as_xml()
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
@@ -255,6 +254,15 @@ def submit_attempt (request):
     if request.POST:
         xml_data = request.raw_post_data
         aid, result = utils.deconvert_xmlised_attempt_result(xml_data)
-        print aid, result
-        #TODO: Further Processing
+        attempt = get_object_or_404(Attempt, id=aid)
+        if int(result)>0:
+            attempt.result = True
+            attempt.user.score += attempt.question.score
+            attempt.user.save()
+            attempt.save()
+        else:
+            attempt.result = False
+            attempt.save()
+        attempt_in_being_evaluated = BeingEvaluated.objects.get(attempt=attempt)
+        attempt_in_being_evaluated.delete()
     return HttpResponse("Done!")
