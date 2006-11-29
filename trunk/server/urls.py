@@ -39,7 +39,7 @@ urlpatterns = patterns('',
         # TOP 10 list
         (r'^top10/$',
             'django.views.generic.list_detail.object_list',
-            { 'queryset' : UserProfile.objects.order_by('score')[:10], 'template_name' : 'view_toppers.html' }),
+            { 'queryset' : UserProfile.objects.order_by('-score')[:10], 'template_name' : 'view_toppers.html' }),
 
         # To display a particular user's Stats
         #Not Finished!
