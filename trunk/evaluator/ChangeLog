@@ -1,5 +1,24 @@
 2006-11-29  Prashanth Mohan  <prashmohan@gmail.com>
 
+	* main.py (Question.save_input_to_disk): Input Data is not saved
+	to file as soon as Client gets question set. This will optimise in
+	that the file need not be saved and read on each attempt
+	evaluation.
+	(Evaluator.run): Run the user program using a wrapper file --
+	exec.py. Memory limits, time limits now implemented.
+	(Python_Evaluator.get_run_cmd): Changed exec command from
+	explicitly stating python. User programs should now have the
+	shebang line
+	(Python_Evaluator.compile): Compiling only effects it to giving
+	execute permission to the python script
+	(Evaluator.check): Corrected the Check function to send the output
+	to the evaluator
+
+	* exec.py: Added exec.py as a wrapper function caller. This file
+	will set the Limits and constraints. So, the limits will apply
+	only to the executed program. Have added Memory
+	constraint. Maximum number of open files constraint does not work.
+
 	* main.py (Question.save_eval_to_disk): This function will
 	unpickle a file; the evaluator, sent from web server
 
@@ -25,6 +44,7 @@
 	* main.py (Evaluator.run): Changed the way the method kills the subprocess
 
 	* main.py (Client.evaluate): Fixed the Multiple-Submit Scoring Bug
+	
 	* main.py (Client.run): Moved attempt's result-updation code to
 	Client.evaluate
 

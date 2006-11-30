@@ -5,8 +5,6 @@ TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
     # ('Your Name', 'your_email@domain.com'),
-    ('Ravi Shankar', 'ravehanker@gmail.com'),
-    ('Prashanth Mohan', 'prashmohan@gmail.com'),
 )
 
 MANAGERS = ADMINS
@@ -90,6 +88,7 @@ CONTEST_NAME = 'Hackzor'
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
 
 # replace with the url of your own contest
-CONTEST_URL = 'localhost:8000'
+CONTEST_URL = 'localhost:8000' # should typically be the same as in
+                               # evaluator/settings.py
 
 SESSION_COOKIE_AGE =1800

@@ -11,4 +11,9 @@ CPP_COMPILE_STR = 'g++ -lm -w \'%i\' -o \'%o\''
 JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
 
 WORK_DIR = 'work_files'
-TIME_INTERVAL = 2 # Time between poll to web server for attempts (in seconds)
+TIME_INTERVAL = 10 # Time between poll to web server for attempts (in seconds)
+
+CONTEST_URL = 'http://127.0.0.1:8000' # should typically be same as in
+                                      # ../settings.py
+EVALUATOR_PATH = 'evaluators'
+INPUT_PATH = 'input'
