@@ -10,13 +10,10 @@ import time
 import pickle
 import cookielib
 import urllib2
+import resource
 import xml.dom.minidom as minidom
 
 from settings import *
-
-## Change this!!!
-MEDIA_ROOT = 'media'
-CONTEST_URL = 'http://127.0.0.1:8000'
 
 class EvaluatorError(Exception):
     def __init__(self, error, value=''):
@@ -57,33 +54,45 @@ class XMLParser:
 class Question(XMLParser):
     """Defines the Characteristics of each question in the contest"""
     def __init__(self, qn, qid):
-        self.input_data = self.get_val_by_id(qn, 'input-data')
+        #self.input_data = self.get_val_by_id(qn, 'input-data')
+        self.input_path = self.save_input_to_disk(self.get_val_by_id(qn,
+                                                                'input-data'),
+                                                  qid)
         # TODO: Consider grouping all the contraint variables inside a `Limit'
         # class
         time_limit = self.get_val_by_id(qn, 'time-limit')
         self.time_limit = float(self.get_val_by_id(qn, 'time-limit'))
         self.mem_limit = int(self.get_val_by_id(qn, 'mem-limit'))
-        self.save_eval_to_disk(qn, qid)
+        self.eval_path = self.save_eval_to_disk(qn, qid)
 
+    def save_input_to_disk(self, input_data, qid):
+        inp_path = os.path.join(INPUT_PATH, qid)
+        inp_file = open(inp_path, 'w')
+        inp_file.write(input_data)
+        inp_file.close()
+        return inp_path
+        
     def save_eval_to_disk(self, qn, qid):
         """This function will unpickle the evaluator, sent from web server and
         save it into a file in the directory `evaluators' in the name of the
         question id"""
         # Save the pickled Evaluator binary to disk
         evaluator = qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue
-        self.eval_file_path = os.path.join('evaluator', qid)
-        eval_file = open(self.eval_file_path, 'w')
+        eval_file_path = os.path.join(EVALUATOR_PATH, qid)
+        eval_file = open(eval_file_path, 'w')
         eval_file.write(evaluator)
         eval_file.close()
-        eval_file = open(self.eval_file_path, 'r')
+        eval_file = open(eval_file_path, 'r')
         del evaluator
         evaluator = pickle.load(eval_file)
         eval_file.close()
-        eval_file = open(self.eval_file_path, 'w')
+        eval_file = open(eval_file_path, 'w')
         eval_file.write(evaluator)
         eval_file.close()
-        os.chmod(self.eval_file_path, 0700) # set executable permission for
-                                        # evaluator
+        os.chmod(eval_file_path, 0700) # set executable permission for
+                                       # evaluator
+        return eval_file_path
+
     
 class Questions(XMLParser):
     """Set of all questions in the contest"""
@@ -108,7 +117,7 @@ class Attempt(XMLParser):
             #return error here
             pass
         attempt = attempt[0]
-        print xml.toprettyxml()
+        #print xml.toprettyxml()
         self.aid = self.get_val_by_id(attempt, 'aid')
         self.qid = self.get_val_by_id(attempt, 'qid')
         self.code = self.get_val_by_id(attempt, 'code')
@@ -138,23 +147,18 @@ class Evaluator:
     def get_run_cmd(self, exec_file):
         raise NotImplementedError('Must be Overridden')
 
-    def run(self, cmd, input):
+    def run(self, cmd, quest):
+        input_file = quest.input_path
         output_file = tempfile.NamedTemporaryFile()
-        # TODO: Change here!!!
-        input_file = tempfile.NamedTemporaryFile()
-        print 'Input File: ',input_file.name
-        print 'Output File: ',output_file.name
-        # cmd = cmd + ' < ' + input_file + ' > ' + output_file.name
-        inp_file = open(input_file.name,'w')
-        inp_file.write (input)
-        inp_file.flush()
-        inp = open (inp_file.name, 'r')
+        inp = open (input_file, 'r')
         kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
         start_time = time.time()
-        p = subprocess.Popen(cmd, **kws)
+        # p = subprocess.Popen(cmd, **kws)
+        p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
+        
         while True:
-            if time.time() - start_time >= 5:
-                # TODO: Verify this!!! IMPORTANT
+            if time.time() - start_time >= quest.time_limit:
+               # TODO: Verify this!!! IMPORTANT
                 os.kill(p.pid, signal.SIGTERM)
                 #os.system('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
                 print 'Killed Process Tree: '+str(p.pid)
@@ -200,19 +204,21 @@ class Evaluator:
         cmd = self.get_run_cmd(exec_file)
         
         # Execute the file for preset input
-        output = self.run(cmd, quest.input_data)
+        output = self.run(cmd, quest)
 
         # Match the output to expected output
-        return True #self.check(attempt, output)
+        return self.check(attempt, output, quest.eval_path)
 
-    def check(self, attempt, output):
-        eval_path = os.path.join(MEDIA_ROOT, attempt.question.evaluator_path)
-        if eval_path[-3:] != '.py':
-            raise EvaluatorError('Evalutor Not Supported')
-        eval_path = eval_path[:-3]
-        compare = __import__(eval_path)
-        result =  compare.compare(output)
-        return result
+    def check(self, attempt, output, eval_path):
+        op_file = tempfile.NamedTemporaryFile()
+        op_file.file.write(output)
+        op_file.file.flush()
+        op_file.file.seek(0)
+        kws = {'shell':True, 'stdin':op_file.file}
+        p = subprocess.Popen(eval_path, **kws)
+        p.wait()
+        op_file.close()
+        return str(p.returncode)
 
 
 class C_Evaluator(Evaluator):
@@ -275,10 +281,12 @@ class Python_Evaluator(Evaluator):
 
     def compile(self, code_file):
         """ Nothing to Compile in the case of Python. Aha *Magic*!"""
+        os.chmod(code_file,0700)
         return code_file
 
     def get_run_cmd(self, exec_file):
-        return 'python '+exec_file
+        #return 'python '+exec_file
+        return exec_file
     
 
 class Client:
@@ -323,13 +331,12 @@ class Client:
             attempt : An instance of the Attempt Class
             return value : Boolean, the result of the evaluation.
         """
-        print 'lang:',attempt.lang, type(attempt.lang)
         lang = attempt.lang.lower()
         # first list special case languages whose names cannot be used for
         # function names in python
         try:
             evaluator = self.evaluators[lang]()
-            print 'Calling evalute'
+            print 'Calling evaluate'
             return evaluator.evaluate(attempt, quest)
         except KeyError:
             raise NotImplementedError('Language '+lang+' not supported')
@@ -348,6 +355,7 @@ class Client:
         while True:
             #TODO: Temporary hack for catching 404, Corrrect it later
             try:
+                print 'Waiting for Attempt'
                 attempt = self.get_attempt()
             except urllib2.HTTPError:
                 attempt = None
@@ -355,9 +363,8 @@ class Client:
                 # No attempts in web server queue to evaluate
                 time.sleep(TIME_INTERVAL)
                 continue
-            # evalute the attempt
+            # evaluate the attempt
             try:
-                print self.question_set.questions.keys()
                 return_value = self.evaluate(attempt, self.question_set.questions[str(attempt.qid)])
             except EvaluatorError:
                 print 'EvaluatorError: '
