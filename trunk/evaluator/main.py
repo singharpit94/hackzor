@@ -125,13 +125,15 @@ class Attempt(XMLParser):
         self.file_name = self.get_val_by_id(attempt, 'file-name')
         
 
-    def convert_to_result(self, result):
+    def convert_to_result(self, result, msg):
         """Converts an attempt into a corresponding XML file to notify result"""
         doc = minidom.Document()
         root = doc.createElementNS('http://code.google.com/p/hackzor', 'attempt')
         doc.appendChild(root)
         self.add_node(doc, root, 'aid', self.aid)
         self.add_node(doc, root, 'result', str(result))
+        if msg:
+            self.add_node(doc, root, 'result', msg)
         return doc.toxml()
         
 ## TODO: Write about the parameter to methods in each of their doc strings
@@ -155,7 +157,7 @@ class Evaluator:
         start_time = time.time()
         # p = subprocess.Popen(cmd, **kws)
         p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
-        
+
         while True:
             if time.time() - start_time >= quest.time_limit:
                # TODO: Verify this!!! IMPORTANT
@@ -285,8 +287,8 @@ class Python_Evaluator(Evaluator):
         return code_file
 
     def get_run_cmd(self, exec_file):
-        #return 'python '+exec_file
-        return exec_file
+        return 'python '+exec_file
+        #return exec_file
     
 
 class Client:
@@ -336,17 +338,19 @@ class Client:
         # function names in python
         try:
             evaluator = self.evaluators[lang]()
-            print 'Calling evaluate'
             return evaluator.evaluate(attempt, quest)
         except KeyError:
             raise NotImplementedError('Language '+lang+' not supported')
-
+        except EvaluatorError:
+            raise
+            
     def submit_attempt(self, attempt_xml):
         host = CONTEST_URL
         #selector = self.submit_attempt_url_select
         selector = self.submit_attempt_url
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
+        print 'submitting ',attempt_xml
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
         return urllib2.urlopen(r).read()        
         
@@ -366,12 +370,13 @@ class Client:
             # evaluate the attempt
             try:
                 return_value = self.evaluate(attempt, self.question_set.questions[str(attempt.qid)])
+                msg = ''
             except EvaluatorError:
                 print 'EvaluatorError: '
-                print sys.exc_info()[1].error
-                return_value = False
+                msg = sys.exc_info()[1].error
+                return_value = 0
             print 'Final Result: ', return_value
-            self.submit_attempt(attempt.convert_to_result(return_value))
+            self.submit_attempt(attempt.convert_to_result(return_value, msg))
         return return_value
 
 
