@@ -12,12 +12,12 @@ resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
 # resource.setrlimit(resource.RLIMIT_NOFILE, (no_of_files, no_of_files))
 cmd = sys.argv[2]
 args = ''
-try:
-    for arg in sys.argv[3:]:
-        args += arg
-        args += ' '
-except:
-    pass
+# try:
+#     for arg in sys.argv[3:]:
+#         args += arg
+#         args += ' '
+# except:
+#     pass
 try:
     os.execl(cmd, args)
 except:    
