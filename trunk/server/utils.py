@@ -102,5 +102,9 @@ def deconvert_xmlised_attempt_result(xmlised_result):
     print xml.toprettyxml()
     aid = get_val_by_id(attempt, 'aid')
     result = get_val_by_id(attempt, 'result')
-    print 'aid :',aid, 'result :', result
-    return (aid, result)
+    if (int(result) == 0) :
+        error_status = get_val_by_id(attempt, 'error')
+    else:
+        error_status="Accepted"
+    #print 'aid :',aid, 'result :', result, 'Error Status :', error_status
+    return (aid, result, error_status)

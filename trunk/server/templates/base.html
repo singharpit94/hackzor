@@ -26,6 +26,7 @@
                 {% else %}
                     <li> <a href='/opc/problems/submit/'>Submit</a>
                 {% endif %}
+				<li><a href='/opc/submits/last10/orderby/-time_of_submit/'>Latest Submissions </a> </li>
 
                 {% if user.is_authenticated  %}
                     <li><a href='/accounts/logout'>Logout</a>

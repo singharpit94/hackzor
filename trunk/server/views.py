@@ -17,7 +17,30 @@ from hackzor.server.forms import *
 #from hackzor.evaluator.main import Client
 import hackzor.server.utils as utils
 
-def viewProblem (request, id):
+def view_last_n_submissions (request, n, sort_by=None, for_user=None):
+    """ View to list the last n submissions sorted by the 'sort by' field """
+    print n, sort_by, for_user
+    if sort_by == None:
+        sort_by = 'time_of_submit'
+    if n == None or int(n) < 1:
+        raise Http404
+
+    if for_user==None:
+        submissions = Attempt.objects.order_by(sort_by)[:int(n)]
+        for_user=""
+    else:
+        try:
+            user = User.objects.get(username__iexact=for_user).userprofile
+            submissions = Attempt.objects.filter(user__exact=user).order_by(sort_by)[:int(n)]
+        except User.DoesNotExist:
+            submissions = Attempt.objects.order_by(sort_by)[:int(n)]
+    return render_to_response('view_submissions.html',
+            {'submissions':submissions, 'user': request.user,
+                'n' : n, 'for_user':for_user})
+
+
+
+def view_problem (request, id):
     """ Simple view to display view a particular problem 
     id : the primary key(id) of the Problem requested """
     path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
@@ -34,7 +57,8 @@ def register(request):
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
          return render_to_response('simple_message.html',
-                                   {'message' :"You are already registered."})
+                                   {'message' :"You are already registered.",
+                                       'user': request.user})
 
     manipulator = RegistrationForm()
     
@@ -75,13 +99,15 @@ def register(request):
             return render_to_response('simple_message.html', 
                                       {'message' : 'A mail has been sent to ' +
                                        '%s. Follow the link in the mail to ' %(new_user.email)+
-                                       'activate your account'  })
+                                       'activate your account',
+                                       'user' : request.user})
         else:
             print 'Errors'
     else:
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('register.html', {'form': form})
+    return render_to_response('register.html', 
+            {'form': form,'user':request.user})
 
 
 def confirm (request, activation_key):
@@ -89,7 +115,7 @@ def confirm (request, activation_key):
     activation_key : The key created for the user during registration"""
     if request.user.is_authenticated():
         return render_to_response('simple_message.html',
-                                  {'message' : 'You are already registerd!'})
+                {'user':request.user, 'message' : 'You are already registerd!'})
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
     #TODO : Prevent attacks by resetting the key when activated
@@ -98,13 +124,13 @@ def confirm (request, activation_key):
         user_profile.delete();
         u.delete()
         return render_to_response('simple_message.html',
-                                  {'message' : 'Your activation key has ' +
+                {'user': request.user, 'message' : 'Your activation key has ' +
                                    'expired. Please register again'})
     user_account = user_profile.user
     user_account.is_active = True
     user_account.save()
     return render_to_response('simple_message.html',
-                              {'message' : 'Thou arth registered. Begin thy ' +
+            {'user': request.user, 'message' : 'Thou arth registered. Begin thy ' +
                                'quest for glory!'})
 
 
@@ -115,7 +141,8 @@ def logout_view (request):
 def forgot_password(request):
     ''' Sends mail to user on reset passwords '''
     if request.user.is_authenticated():
-        return render_to_response('simple_message.html', {'message' : 'You already know your password. Use Change password to change your existing password'})
+        return render_to_response('simple_message.html', 
+                {'user':request.user, 'message' : 'You already know your password. Use Change password to change your existing password'})
 
     manipulator = ForgotPassword()
 
@@ -146,13 +173,13 @@ def forgot_password(request):
                       [u.email])
             
             return render_to_response('simple_message.html', 
-            {'message' : 'A mail has been sent to %s with the new password' %(u.email) })
+                    {'user':request.user, 'message' : 'A mail has been sent to %s with the new password' %(u.email) })
         else:
             print 'Errors'
     else:
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('reset_password.html', {'form': form})
+    return render_to_response('reset_password.html', {'user':request.user, 'form': form})
 
 @login_required
 def change_password(request):
@@ -169,7 +196,8 @@ def change_password(request):
                 user.set_password(new_data['password1'])
                 #TODO: The Navibar goes crazy after this, find out the reason
                 user.save()
-                return render_to_response('simple_message.html', {'message' : 'Password Changed!'})
+                return render_to_response('simple_message.html',
+                        {'user':request.user, 'message' : 'Password Changed!'})
             else:
                     errors['old_password'].append('Old Password is incorrect')
         else: 
@@ -200,11 +228,18 @@ def submit_code (request, problem_no=None):
             result = False
             language = get_object_or_404(Language, id=new_data['language_id'])
             attempt = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
+            attempt.error_status = "Being Evaluated"
             attempt.save()
-            pending = ToBeEvaluated (attempt=attempt)
-            pending.save()
+            if len(content) <= question.source_limit:
+                pending = ToBeEvaluated (attempt=attempt)
+                pending.save()
+            else:
+                attempt.result = False
+                attempt.error_status = "Source Limit Exceeded"
+                attempt.save()
             #Client().start()
-            return render_to_response('simple_message.html', {'message' : 'Code Submitted!'})
+            return render_to_response('simple_message.html',
+                    {'user':request.user, 'message' : 'Code Submitted!'})
         else:
             print errors
     else:
@@ -231,10 +266,28 @@ def search_questions (request):
                 if result.count() == 0:
                     break
 
-    return render_to_response('search_result.html', {'beenthere':beenthere, 'result':result})
+    return render_to_response('search_result.html', {'user':request.user, 'beenthere':beenthere, 'result':result})
+
+def search_users (request):
+    """ Search Engine for User Status"""
+    result = []
+    if request.GET:
+        data = request.GET.copy()
+        keywords = data.getlist ('username')[0]
+        if keywords:
+            keywords = keywords.split()
+            result = User.objects.filter( 
+                    Q(username=keywords) | Q(first_name__icontains=keywords)| Q(last_name__icontains=keywords ) )
+            for k in keywords[1:]:
+                result = result.filter( 
+                    Q(username=keywords) | Q(first_name__icontains=keywords) | Q(last_name__icontains=keywords ) )
+                if result.count() == 0:
+                    break
+
+    return render_to_response('search_result.html', {'user':request.user, 'beenthere':beenthere, 'result':result})
 
 
-def retreive_attempt (request):
+def retreive_attempt (request, key_id):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     attempt_xmlised = utils.get_attempt_as_xml()
@@ -242,27 +295,27 @@ def retreive_attempt (request):
         raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
 
-def retreive_question_set (request):
+def retreive_question_set (request, key_id):
     """ Get the list of questions  as XML"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     question_set_xmlised = utils.get_question_set_as_xml()
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
 
-def submit_attempt (request):
+def submit_attempt (request, key_id):
     """ Get evaluated result and update DB """
     if request.POST:
         xml_data = request.raw_post_data
-        aid, result = utils.deconvert_xmlised_attempt_result(xml_data)
+        aid, result, error_status = utils.deconvert_xmlised_attempt_result(xml_data)
         attempt = get_object_or_404(Attempt, id=aid)
+        attempt.error_status = error_status
         if int(result)>0:
             attempt.result = True
             attempt.user.score += attempt.question.score
             attempt.user.save()
-            attempt.save()
         else:
             attempt.result = False
-            attempt.save()
+        attempt.save()
         attempt_in_being_evaluated = BeingEvaluated.objects.get(attempt=attempt)
         attempt_in_being_evaluated.delete()
     return HttpResponse("Done!")
