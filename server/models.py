@@ -55,6 +55,7 @@ class Attempt(models.Model):
     file_name = models.CharField(maxlength=32)
     language = models.ForeignKey(Language)
     time_of_submit = models.DateTimeField(auto_now_add=True)
+    error_status = models.TextField()
     class Admin: pass
 
 
@@ -68,3 +69,10 @@ class BeingEvaluated (models.Model):
     evaluation process is yet to be completed. In the case that an evaluator
     crashes, these attempt might need to be moved back to ToBeEvaluated """
     attempt = models.ForeignKey (Attempt)
+    #timestamp = models.DateTimeField(auto_now_add=True)
+
+class PGP (models.Model):
+    """ Contains Key details about Evaluators """
+    PGPkey = models.TextField(blank=False)
+    keyid = models.CharField(maxlength=8, editable=False)
+    class Admin:pass

@@ -23,7 +23,7 @@ urlpatterns = patterns('',
         #'django.views.generic.list_detail.object_detail',
         #dict(problem_dict, template_name='view_problem.html')),
         (r'^problems/(?P<id>\d+)/$',
-            'hackzor.server.views.viewProblem'),
+            'hackzor.server.views.view_problem'),
 
         # Submit Solution Page
         (r'^problems/(?P<problem_no>\d+)/submit/$',
@@ -41,6 +41,10 @@ urlpatterns = patterns('',
             'django.views.generic.list_detail.object_list',
             { 'queryset' : UserProfile.objects.order_by('-score')[:10], 'template_name' : 'view_toppers.html' }),
 
+        # Last n submits 
+        (r'^submits/last(?P<n>\d+)/(orderby/(?P<sort_by>(-)?\w+)/)?((?P<for_user>\w+)/)?$',
+            'hackzor.server.views.view_last_n_submissions',),
+
         # To display a particular user's Stats
         #Not Finished!
         # TODO: Use a shared dict called User_dict along with TOP 10
@@ -50,17 +54,17 @@ urlpatterns = patterns('',
 
         # To get an Attempt
         # TODO: To be used by Evaluator only!! Add encryption!
-        (r'^evaluator/getattempt/',
+        (r'^evaluator/(?P<key_id>\w+)/getattempt/',
          'hackzor.server.views.retreive_attempt',),
 
         # To submit result of an Attempt
         # TODO: To be used by Evaluator only!! Add encryption!
-        (r'^evaluator/submitattempt/',
+        (r'^evaluator/(?P<key_id>\w+)/submitattempt/',
          'hackzor.server.views.submit_attempt',),
 
         # To get Question set
         # TODO: To be used by Evaluator only!! Add encryption!
-                       (r'^evaluator/getquestionset/',
+                       (r'^evaluator/(?P<key_id>\w+)/getquestionset/',
          'hackzor.server.views.retreive_question_set',),
 
         )
