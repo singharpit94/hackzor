@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User 
 from django.db import models
 import os
-
+import hackzor.evaluator.GPG as GPG
 
 class Question(models.Model):
     """ Contains the question content and path to evaluators and test cases """
@@ -14,7 +14,7 @@ class Question(models.Model):
     test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
     evaluator_path = models.FileField(upload_to = 'hidden/evaluators/pyCode/')
     score = models.IntegerField()
-    time_limit = models.FloatField( max_digits=3, decimal_places = 1)
+    time_limit = models.FloatField(max_digits=3, decimal_places = 1)
     memory_limit = models.PositiveIntegerField()
     source_limit = models.PositiveIntegerField()
     class Admin: pass
@@ -64,26 +64,27 @@ class ToBeEvaluated(models.Model):
     attempt = models.ForeignKey(Attempt)
 
 
-class BeingEvaluated (models.Model):
+class BeingEvaluated(models.Model):
     """ Contains Attempts which have been assigned to an Evaluator but whose
     evaluation process is yet to be completed. In the case that an evaluator
     crashes, these attempt might need to be moved back to ToBeEvaluated """
-    attempt = models.ForeignKey (Attempt)
-    #timestamp = models.DateTimeField(auto_now_add=True)
+    attempt = models.ForeignKey(Attempt)
+    timestamp = models.DateTimeField(auto_now_add=True)
 
-class PGP (models.Model):
+class PGP(models.Model):
     """ Contains Key details about Evaluators """
     PGPkey = models.TextField(blank=False)
     keyid = models.CharField(maxlength=8, editable=False)
 
     def save(self):
-        import GPG
         obj = GPG.GPG()
         ret = obj.import_key(self.PGPkey)
-        if ret.stderr:
+        if ret.unchanged + ret.imported <= 0 or not ret.results:
+            # TODO: Problem if key is already imported. Correct This
             return
         for keys in obj.list_keys():
-            if keys['fingerprint'] == ret['fingerprint']:
+            if keys['fingerprint'] == ret.results[0]['fingerprint']:
+                # TODO: Support multiple key imports                                        
                 self.keyid = keys['keyid']
                 # This is to call the 'real' Save function
                 super(PGP, self).save()

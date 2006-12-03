@@ -1,3 +1,14 @@
+2006-12-03  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py (XMLParser.obj): Added global GPG object called obj
+	(XMLParser.decrypt): Added Decrypt function (based on PGP)
+	(XMLParser.get_val_by_id): Automatically returns decrypted values
+	now
+	(Client.__init__): KeyID obtained from keyring now
+	(Client.obj): Added global GPG object called obj
+	(Client.import_key): Added function to import keys
+	(Client.submit_attempt): Submits an XML attempt after signing
+
 2006-11-29  Ravi Shankar  <ravehanker@gmail.com>
 
 	* main.py(save_eval_to_disk): fixed misspelt variable 'evaluators'

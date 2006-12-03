@@ -1,3 +1,20 @@
+2006-12-03  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* models.py (PGP.save): Modified PGP model to correct imports. If
+	key already present in keyring, the `unchanged' parameter is
+	increased.
+
+	* utils.py (encrypt): Added Encrypt function 
+	(add_node): This function automatically encrypts the data and adds
+	to XML file
+	(get_question_set_as_xml): Uses StringIO module instead of
+	files. Better Performance
+	(get_val_by_id): Automatically decrypts the data and returns it
+	(decrypt): Added Decrypt Function
+
+	* views.py (submit_attempt): Added Support for verifying evaluator
+	source
+
 2006-12-03  Ravi Shankar <ravehanker@gmail.com>
 
 	* models.py (PGP.save): Added

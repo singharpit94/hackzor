@@ -11,9 +11,11 @@ import pickle
 import cookielib
 import urllib2
 import resource
+import types
 import xml.dom.minidom as minidom
 
 from settings import *
+import GPG
 
 class EvaluatorError(Exception):
     def __init__(self, error, value=''):
@@ -29,8 +31,17 @@ class XMLParser:
     to be parsed
     NOTE: This class is not to be instantiated
     """
+    obj = GPG.GPG()
     def __init__(self):
         raise NotImplementedError('XMLParser class is not to be instantiated')
+
+    def decrypt(self, value):
+        if type(value) == types.ListType:
+            ret_val = []
+            for val in value:
+                ret_val.append(self.obj.decrypt(val, always_trust=True))
+            return ret_val
+        return self.obj.decrypt(value, always_trust=True).data
     
     def get_val_by_id(self, root, id):
         """This function will get the value of the `id' child node of
@@ -38,15 +49,15 @@ class XMLParser:
         root
         |
         |-- <id>value-to-be-returned</id>"""
-        
         child_node = root.getElementsByTagName(id)
         if not child_node:
             raise EvaluatorError('Invalid XML file')
-        return child_node[0].firstChild.nodeValue
+        return self.decrypt(child_node[0].firstChild.nodeValue)
 
     def add_node(self, doc, root, child, value):
         """ Used to add a text node 'child' with the value of 'value'(duh..) """
         node = doc.createElement(child)
+        value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
         node.appendChild(doc.createTextNode(value))
         root.appendChild(node)
 
@@ -55,9 +66,8 @@ class Question(XMLParser):
     """Defines the Characteristics of each question in the contest"""
     def __init__(self, qn, qid):
         #self.input_data = self.get_val_by_id(qn, 'input-data')
-        self.input_path = self.save_input_to_disk(self.get_val_by_id(qn,
-                                                                'input-data'),
-                                                  qid)
+        input_path = self.get_val_by_id(qn, 'input-data')
+        self.input_path = self.save_input_to_disk(input_path, qid)
         # TODO: Consider grouping all the contraint variables inside a `Limit'
         # class
         time_limit = self.get_val_by_id(qn, 'time-limit')
@@ -68,6 +78,7 @@ class Question(XMLParser):
     def save_input_to_disk(self, input_data, qid):
         inp_path = os.path.join(INPUT_PATH, qid)
         inp_file = open(inp_path, 'w')
+        input_data = str(input_data)
         inp_file.write(input_data)
         inp_file.close()
         return inp_path
@@ -77,7 +88,7 @@ class Question(XMLParser):
         save it into a file in the directory `evaluators' in the name of the
         question id"""
         # Save the pickled Evaluator binary to disk
-        evaluator = qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue
+        evaluator = self.decrypt(qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue)
         eval_file_path = os.path.join(EVALUATOR_PATH, qid)
         eval_file = open(eval_file_path, 'w')
         eval_file.write(evaluator)
@@ -123,7 +134,6 @@ class Attempt(XMLParser):
         self.code = self.get_val_by_id(attempt, 'code')
         self.lang = self.get_val_by_id(attempt, 'lang')
         self.file_name = self.get_val_by_id(attempt, 'file-name')
-        
 
     def convert_to_result(self, result, msg):
         """Converts an attempt into a corresponding XML file to notify result"""
@@ -287,8 +297,8 @@ class Python_Evaluator(Evaluator):
         return code_file
 
     def get_run_cmd(self, exec_file):
-        return 'python '+exec_file
-        #return exec_file
+        #return 'python '+exec_file
+        return exec_file
     
 
 class Client:
@@ -296,20 +306,42 @@ class Client:
     # TODO: Avoid HardCoding Language Options
     evaluators = {'c':C_Evaluator, 'c++':CPP_Evaluator,
                   'java':Java_Evaluator, 'python':Python_Evaluator}
-    
+    obj = GPG.GPG()
     def __init__(self):
-        key_id = '' # TODO: get key-id from GPG keyring
-        root_url = CONTEST_URL + '/opc/evaluator'+key_id
+        global obj
+        fpr = obj.fingerprints()[0]
+        for key in obj.list_keys():
+            if key['fingerprint'] == fpr:
+                key_id = key['keyid']
+        root_url = CONTEST_URL + '/opc/evaluator/'+key_id
         self.get_attempt_url = root_url + '/getattempt/'
         self.submit_attempt_url = root_url + '/submitattempt/'
         self.get_qns = root_url + '/getquestionset/'
-        cj = cookielib.CookieJar()
-        self.cookie_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
-        urllib2.install_opener(self.cookie_opener)
+        self.get_pub_key = root_url + '/getpubkey/'
+        self.question_set = Questions(self.read_page(self.get_qns))
+        # TODO: Get Pub Key automatically from the server
+#         global SERVER_KEYID
+#         server_key = self.read_page(self.get_pub_key)
+#         SERVER_KEYID = self.import_key(server_key)
 
-        # Initialise the question Table
-        req = urllib2.Request(self.get_qns, None)
-        self.question_set = Questions(urllib2.urlopen(req).read())
+    def import_key(key):
+        try:
+            imp = self.obj.import_key(key)
+        except KeyError:
+            print 'Unable to import'
+            return # TODO: Should it fail here?
+        for keys in obj.list_keys():
+            if keys['fingerprint'] == imp['fingerprint']:
+                return keys['keyid']
+        
+    def read_page(self, website):
+        cj = cookielib.CookieJar()
+        cookie_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
+        urllib2.install_opener(cookie_opener)
+        req = urllib2.Request(website, None)
+        data = urllib2.urlopen(req)
+        data = data.read()
+        return data
     
     def get_attempt(self):
         """ Keep polling the server until an attempt to be evaluated is
@@ -348,9 +380,9 @@ class Client:
         host = CONTEST_URL
         #selector = self.submit_attempt_url_select
         selector = self.submit_attempt_url
+        attempt_xml = self.obj.sign(attempt_xml).data
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
-        print 'submitting ',attempt_xml
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
         return urllib2.urlopen(r).read()        
         
@@ -374,6 +406,7 @@ class Client:
             except EvaluatorError:
                 print 'EvaluatorError: '
                 msg = sys.exc_info()[1].error
+                print msg
                 return_value = 0
             print 'Final Result: ', return_value
             self.submit_attempt(attempt.convert_to_result(return_value, msg))
@@ -381,4 +414,5 @@ class Client:
 
 
 if __name__ == '__main__':
+    gpg = GPG.GPG()
     Client().start()
