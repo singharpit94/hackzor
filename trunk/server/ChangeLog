@@ -1,3 +1,55 @@
+2006-12-03  Ravi Shankar <ravehanker@gmail.com>
+
+	* models.py (PGP.save): Added
+
+2006-12-02  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py(viewProblem): Changed name to view_problem 
+
+	(view_last_n_submissions): Added
+	(search_users): Added
+
+	(register, confirm, forgot_password, change_password,submit_code, 
+	search_questions): Added request.user as parameter to render_to_response
+
+	(submit_code): Added Source Limit Checking
+
+	(submit_attempt, retrieve_question_set, retrive_attempt): Added key_id as
+	parameter
+
+	* models.py(Attempt): Added field error_status
+	(PGP): Added Class
+
+	* utils.py(deconver_xmlised_attempt_result): Added error_status field
+	support
+
+	* urls.py(urlpatterns): Added url for last n submits
+	Added key_id parameter to retrive_attempt, submit_attempt and
+	retrieve_question_set
+
+2006-11-29  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py(viewProblem): deleted test_output according to model change
+	(register): Fixed errors to due to indentation
+	(submit_code): Made changes in statement decoration
+
+	(retrive_attempt): Added XML Support. Now raises 404 on empty attempt
+	(submit_attempt): Added and added distributed support in subsequesnt
+	commit
+	(retrieve_question_set): Added 
+
+	* utils.py(convert_attempt_to_xml): Cast values from XML to strings and
+	changed return value to doc.toxml()
+
+	(get_question_set_as_xml, get_val_id, deconver_xmlised_attempt_result): Added
+
+	(get_attempt_as_xml): now returns None if queue empty
+
+	* urls.py(urlpatterns): Added urls to display user stats, getattempt,
+	submitattempt and question set.
+
+	Changed view_toppers list as descending.
+
 2006-11-19  Ravi Shankar <ravehanker@gmail.com>
 
 	* views.py, forms.py: Added Doc Strings to views

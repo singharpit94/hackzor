@@ -75,4 +75,16 @@ class PGP (models.Model):
     """ Contains Key details about Evaluators """
     PGPkey = models.TextField(blank=False)
     keyid = models.CharField(maxlength=8, editable=False)
+
+    def save(self):
+        import GPG
+        obj = GPG.GPG()
+        ret = obj.import_key(self.PGPkey)
+        if ret.stderr:
+            return
+        for keys in obj.list_keys():
+            if keys['fingerprint'] == ret['fingerprint']:
+                self.keyid = keys['keyid']
+                # This is to call the 'real' Save function
+                super(PGP, self).save()
     class Admin:pass

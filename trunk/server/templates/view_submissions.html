@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block title %} {{ block.super }} - Online Status {% endblock %}
+
+{% block content %} 
+	<h1> Showing Latest Submissions </h1>
+
+	<table border='1'>
+		<tr>
+			<th> 
+				<a href="/opc/submits/last{{n}}/orderby/user/{{ for_user }}">User Name</a>
+			</th>
+			<th> 
+				<a href="/opc/submits/last{{n}}/orderby/question/{{ for_user }}">Question</a>
+			</th>
+			<th> 
+				<a href="/opc/submits/last{{n}}/orderby/language/{{ for_user }}">Language</a>
+			</th>
+			<th> Status </th>
+			<th> 
+				<a
+				href="/opc/submits/last{{n}}/orderby/-time_of_submit/{{ for_user }}">Time of Submission</a>
+			</th>
+		</tr>
+		{% for attempt in submissions %}
+			<tr>
+				<td><a href="/opc/users/{{attempt.user.user.id}}">
+					{{ attempt.user.user.username }}
+				</a></td>
+				<td> {{ attempt.question.name }} </td>
+				<td> {{ attempt.language.compiler }} </td>
+				<td> {{ attempt.error_status }} </td>
+				<td> {{ attempt.time_of_submit }} </td>
+			</tr>
+		{% endfor %}
+	</table>
+{% endblock %}
