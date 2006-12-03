@@ -88,7 +88,7 @@ CONTEST_NAME = 'Hackzor'
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
 
 # replace with the url of your own contest
-CONTEST_URL = 'localhost:8000' # should typically be the same as in
                                # evaluator/settings.py
+CONTEST_URL = 'localhost:8000' # should typically be the same as in
 
 SESSION_COOKIE_AGE =1800

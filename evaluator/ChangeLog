@@ -1,3 +1,11 @@
+2006-11-29  Ravi Shankar  <ravehanker@gmail.com>
+
+	* main.py(save_eval_to_disk): fixed misspelt variable 'evaluators'
+
+	(Client.__init__): Added '/' to urls
+	(Client.submit_attempt): Fixed misspelt variableo\
+
+	(Client.start): Added Temporary hack to catch 404
 2006-11-29  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* main.py (Question.save_input_to_disk): Input Data is not saved

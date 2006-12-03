@@ -4,8 +4,9 @@
 
 {% block content %} 
 	<h1> {{object.username }}</h1><p>
-	Full Name : {{ object.first_name }}, {{ object.last_name }}
-	Score : {{ object.userprofile.score }}
+	Full Name : {{ object.first_name }}, {{ object.last_name }}<p>
+	Score : {{ object.userprofile.score }}<p>
+	<a href="/opc/submits/last10/{{object.username}}/"> View Last Submissions </a>
 
 	<table border='1'>
 			<tr>
