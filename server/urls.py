@@ -64,8 +64,9 @@ urlpatterns = patterns('',
 
         # To get Question set
         # TODO: To be used by Evaluator only!! Add encryption!
-                       (r'^evaluator/(?P<key_id>\w+)/getquestionset/',
+        (r'^evaluator/(?P<key_id>\w+)/getquestionset/',
          'hackzor.server.views.retreive_question_set',),
 
+        (r'^evaluator/getpubkey/','hackzor.server.views.get_pub_key'),
         )
 

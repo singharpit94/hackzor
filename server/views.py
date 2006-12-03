@@ -1,5 +1,5 @@
 import datetime, random, sha
-import os
+import os, sys
 
 from django import forms 
 from django.shortcuts import render_to_response, get_object_or_404
@@ -14,8 +14,8 @@ from django.db.models import Q
 from hackzor import settings
 from hackzor.server.models import *
 from hackzor.server.forms import *
-#from hackzor.evaluator.main import Client
 import hackzor.server.utils as utils
+import hackzor.evaluator.GPG as GPG
 
 def view_last_n_submissions (request, n, sort_by=None, for_user=None):
     """ View to list the last n submissions sorted by the 'sort by' field """
@@ -237,7 +237,7 @@ def submit_code (request, problem_no=None):
                 attempt.result = False
                 attempt.error_status = "Source Limit Exceeded"
                 attempt.save()
-            #Client().start()
+
             return render_to_response('simple_message.html',
                     {'user':request.user, 'message' : 'Code Submitted!'})
         else:
@@ -290,7 +290,12 @@ def search_users (request):
 def retreive_attempt (request, key_id):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    attempt_xmlised = utils.get_attempt_as_xml()
+    for att in BeingEvaluated.objects.all():
+        # TODO: add the logic here to move stuff back to ToBeEvaluated from
+        # BeingEvaluated
+        #return HttpResponse('Oo error here')
+        pass
+    attempt_xmlised = utils.get_attempt_as_xml(key_id)
     if not attempt_xmlised:
         raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
@@ -298,7 +303,7 @@ def retreive_attempt (request, key_id):
 def retreive_question_set (request, key_id):
     """ Get the list of questions  as XML"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    question_set_xmlised = utils.get_question_set_as_xml()
+    question_set_xmlised = utils.get_question_set_as_xml(key_id)
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
 
@@ -306,7 +311,12 @@ def submit_attempt (request, key_id):
     """ Get evaluated result and update DB """
     if request.POST:
         xml_data = request.raw_post_data
-        aid, result, error_status = utils.deconvert_xmlised_attempt_result(xml_data)
+        global obj
+        try:
+            xml_data = obj.verify(xml_data).data
+        except:
+            return HttpResponse('Error!')
+        aid, result, error_status = utils.get_result(xml_data)
         attempt = get_object_or_404(Attempt, id=aid)
         attempt.error_status = error_status
         if int(result)>0:
@@ -318,4 +328,14 @@ def submit_attempt (request, key_id):
         attempt.save()
         attempt_in_being_evaluated = BeingEvaluated.objects.get(attempt=attempt)
         attempt_in_being_evaluated.delete()
-    return HttpResponse("Done!")
+    return HttpResponse('Done!')
+
+def get_pub_key(request):
+    """Returns the Public Key of the web server"""
+    # TODO: Use this function
+    global obj
+    return HttpResponse(obj.showpubkey())
+
+obj = GPG.GPG()
+# Adding global variable for better performance. TODO: Contemplate moving this
+# inside the respective functions

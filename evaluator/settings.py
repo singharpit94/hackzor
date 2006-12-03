@@ -17,3 +17,5 @@ CONTEST_URL = 'http://127.0.0.1:8000' # should typically be same as in
                                       # ../settings.py
 EVALUATOR_PATH = 'evaluators'
 INPUT_PATH = 'input'
+
+SERVER_KEYID = '' # Enter the server's Public Key ID
