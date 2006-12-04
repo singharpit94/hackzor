@@ -92,3 +92,7 @@ CONTEST_EMAIL = 'hackzor@googlegroups.com'
 CONTEST_URL = 'localhost:8000' # should typically be the same as in
 
 SESSION_COOKIE_AGE =1800
+
+# This is that time that will be given before the attempt it retrieved will be
+# moved back to TobeEvaluated
+ATTEPMT_TIMEOUT = 60 # In Seconds

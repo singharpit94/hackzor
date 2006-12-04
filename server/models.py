@@ -68,8 +68,8 @@ class BeingEvaluated(models.Model):
     """ Contains Attempts which have been assigned to an Evaluator but whose
     evaluation process is yet to be completed. In the case that an evaluator
     crashes, these attempt might need to be moved back to ToBeEvaluated """
-    attempt = models.ForeignKey(Attempt)
-    timestamp = models.DateTimeField(auto_now_add=True)
+    attempt = models.ForeignKey (Attempt)
+    time_of_retrieval = models.DateTimeField(auto_now_add=True)
 
 class PGP(models.Model):
     """ Contains Key details about Evaluators """
