@@ -5,7 +5,7 @@ import xml.dom.ext as ext
 import os, pickle, tempfile
 import hackzor.evaluator.GPG as GPG
 import types
-import StringIO
+import StringIO, sys
 
 def queue_not_empty ():
     """ Checks if the ToBeEvaluated queue is empty or not """
@@ -119,14 +119,14 @@ def get_result(xmlised_result):
 
 def decrypt(data):
     global obj
-    data = str(data)
-    if type(data) == types.StringType:
-        return obj.decrypt(data, always_trust=True).data
-    elif type(data) == types.ListType:
+    if type(data) == types.ListType:
         ret_val = []
         for d in data:
             ret_val.append(obj.decrypt(d).data)
         return ret_val
+    data = str(data)
+    return obj.decrypt(data, always_trust=True).data
+
     # catch error. UnExpected Type
 
 obj = GPG.GPG() # created global to avoid creation for each call of

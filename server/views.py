@@ -281,19 +281,19 @@ def search (request):
 def retrieve_attempt (request, key_id):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    from hackzor.settings import ATTEPMT_TIMEOUT
+    from hackzor.settings import ATTEMPT_TIMEOUT
     from datetime import datetime
     for being_eval_attempt in BeingEvaluated.objects.sort_by('time_of_retrieval'):
         #TODO: Handle the condition that the other evaluator returns a result all of a sudden!
         now = datetime.now()
         diff = now - being_eval_attempt.time_of_retrieval
-        if (now.seconds > ATTEPMT_TIMEOUT):
+        if (now.seconds > ATTEMPT_TIMEOUT):
             attempt = being_eval_attempt.attempt
             being_eval_attempt.delete()
             to_be_eval_attempt = ToBeEvaluated(attempt=attempt)
             to_be_eval_attempt.save()
         else: break
-    attempt_xmlised = utils.get_attempt_as_xml(keyid)
+    attempt_xmlised = utils.get_attempt_as_xml(key_id)
     if not attempt_xmlised:
         raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
@@ -313,6 +313,7 @@ def submit_attempt (request, key_id):
         try:
             xml_data = obj.verify(xml_data).data
         except:
+            print 'Error'
             return HttpResponse('Error!')
         aid, result, error_status = utils.get_result(xml_data)
         attempt = get_object_or_404(Attempt, id=aid)

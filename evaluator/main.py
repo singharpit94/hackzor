@@ -178,8 +178,14 @@ class Evaluator:
             elif p.poll() != None:
                 break
             time.sleep(0.5)
-        if p.returncode != 0:
-            raise EvaluatorError('Run-Time Error')
+        if p.returncode == 139:
+            raise EvaluatorError('Run-Time Error. Received SIGSEGV')
+        elif p.returncode == 137:
+            raise EvaluatorError('Run-Time Error. Received SIGTERM')
+        elif p.returncode == 143:
+            raise EvaluatorError('Run-Time Error. Received SIGKILL')
+        elif p.returncode != 0 :
+            raise EvaluatorError('Run-Time Error. Unknown Error')
         else:
             output_file.file.flush()
             output_file.file.seek(0)
@@ -308,9 +314,8 @@ class Client:
                   'java':Java_Evaluator, 'python':Python_Evaluator}
     obj = GPG.GPG()
     def __init__(self):
-        global obj
-        fpr = obj.fingerprints()[0]
-        for key in obj.list_keys():
+        fpr = self.obj.fingerprints()[0]
+        for key in self.obj.list_keys():
             if key['fingerprint'] == fpr:
                 key_id = key['keyid']
         root_url = CONTEST_URL + '/opc/evaluator/'+key_id
@@ -330,7 +335,7 @@ class Client:
         except KeyError:
             print 'Unable to import'
             return # TODO: Should it fail here?
-        for keys in obj.list_keys():
+        for keys in self.obj.list_keys():
             if keys['fingerprint'] == imp['fingerprint']:
                 return keys['keyid']
         
