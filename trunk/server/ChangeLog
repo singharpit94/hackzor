@@ -1,3 +1,24 @@
+2006-12-04  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py (submit_code): Fixed Breakage due to checking source limit.
+	Does not store submit in the model if source limit exceeded
+	* views.py (retreive_attempt): Changed name to retrieve_attempt
+	* views.py (retreive_question_set): Changed name to retrieve_question_set
+
+	(retreive_attempt): Code now reclaims Attempts that have been
+	in BeingEvaluated for time greater than ATTEPMT_TIMEOUT
+	Now passes key_id to utils.get_question_set_as_xml
+
+	(search_questions): Changed Name to search
+	Added code to searchisers also
+	(search_users): deleted as it is now redundant
+
+	(get_pub_key): Added
+
+	* models.py (BeingEvaluated): Added time_of_retrieval 
+
+	* urls.py: changed search_user url to search
+
 2006-12-03  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* models.py (PGP.save): Modified PGP model to correct imports. If

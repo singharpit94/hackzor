@@ -32,9 +32,9 @@ urlpatterns = patterns('',
         (r'^problems/submit/$',
             'hackzor.server.views.submit_code',),
 
-        # Search Questions page
+        # Search page
         (r'^search/',
-         'hackzor.server.views.search_questions',),
+         'hackzor.server.views.search',),
 
         # TOP 10 list
         (r'^top10/$',
@@ -55,7 +55,7 @@ urlpatterns = patterns('',
         # To get an Attempt
         # TODO: To be used by Evaluator only!! Add encryption!
         (r'^evaluator/(?P<key_id>\w+)/getattempt/',
-         'hackzor.server.views.retreive_attempt',),
+         'hackzor.server.views.retrieve_attempt',),
 
         # To submit result of an Attempt
         # TODO: To be used by Evaluator only!! Add encryption!
@@ -65,7 +65,7 @@ urlpatterns = patterns('',
         # To get Question set
         # TODO: To be used by Evaluator only!! Add encryption!
         (r'^evaluator/(?P<key_id>\w+)/getquestionset/',
-         'hackzor.server.views.retreive_question_set',),
+         'hackzor.server.views.retrieve_question_set',),
 
         (r'^evaluator/getpubkey/','hackzor.server.views.get_pub_key'),
         )

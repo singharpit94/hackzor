@@ -222,21 +222,19 @@ def submit_code (request, problem_no=None):
         if not errors:
             manipulator.do_html2python(new_data)
             content  = request.FILES['file_path']['content']
+            question = get_object_or_404(Question, id=new_data['question_id'])
+            if len(content) > question.source_limit:
+                return render_to_response('simple_message.html',
+                        {'user':request.user, 'message' : 'Source Limit Exceeded. Code was NOT saved.'})
             
             user = get_object_or_404(UserProfile, user=request.user)
-            question = get_object_or_404(Question, id=new_data['question_id'])
-            result = False
             language = get_object_or_404(Language, id=new_data['language_id'])
+
             attempt = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.error_status = "Being Evaluated"
             attempt.save()
-            if len(content) <= question.source_limit:
-                pending = ToBeEvaluated (attempt=attempt)
-                pending.save()
-            else:
-                attempt.result = False
-                attempt.error_status = "Source Limit Exceeded"
-                attempt.save()
+            pending = ToBeEvaluated (attempt=attempt)
+            pending.save()
 
             return render_to_response('simple_message.html',
                     {'user':request.user, 'message' : 'Code Submitted!'})
@@ -250,57 +248,57 @@ def submit_code (request, problem_no=None):
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form, 'user':request.user})
 
-def search_questions (request):
+def search (request):
     """ Search Engine for the Questions"""
-    result = []
     beenthere=False
+    result = []
     if request.GET:
         beenthere=True
         data = request.GET.copy()
         keywords = data.getlist ('search_text')[0]
         if keywords:
             keywords = keywords.split()
-            result = Question.objects.filter( Q(text__icontains=keywords[0]) | Q(name__icontains=keywords[0]) )
-            for k in keywords[1:]:
-                result = result.filter( Q(text__icontains=k) | Q(name__icontains=k) )
-                if result.count() == 0:
-                    break
+            #TODO: Exclude Staff accounts in Search
+            questions_results = Question.objects.filter( 
+                    Q(text__icontains=keywords[0]) | Q(name__icontains=keywords[0]) )
+            user_results = User.objects.filter(
+                    Q(username__icontains=keywords[0]) | Q(first_name__icontains=keywords[0])| Q(last_name__icontains=keywords[0] ) )
 
-    return render_to_response('search_result.html', {'user':request.user, 'beenthere':beenthere, 'result':result})
-
-def search_users (request):
-    """ Search Engine for User Status"""
-    result = []
-    if request.GET:
-        data = request.GET.copy()
-        keywords = data.getlist ('username')[0]
-        if keywords:
-            keywords = keywords.split()
-            result = User.objects.filter( 
-                    Q(username=keywords) | Q(first_name__icontains=keywords)| Q(last_name__icontains=keywords ) )
             for k in keywords[1:]:
-                result = result.filter( 
-                    Q(username=keywords) | Q(first_name__icontains=keywords) | Q(last_name__icontains=keywords ) )
-                if result.count() == 0:
+                questions_results = questions_results.filter( 
+                        Q(text__icontains=k) | Q(name__icontains=k) )
+                user_results = user_results.filter(
+                        Q(username__icontains=keywords) | Q(first_name__icontains=keywords)| Q(last_name__icontains=keywords ) )
+                if questions_results.count() == 0 and user_results.count() == 0:
                     break
+            result = list(questions_results)
+            result.extend(list(user_results))
 
     return render_to_response('search_result.html', {'user':request.user, 'beenthere':beenthere, 'result':result})
 
 
-def retreive_attempt (request, key_id):
+
+def retrieve_attempt (request, key_id):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    for att in BeingEvaluated.objects.all():
-        # TODO: add the logic here to move stuff back to ToBeEvaluated from
-        # BeingEvaluated
-        #return HttpResponse('Oo error here')
-        pass
-    attempt_xmlised = utils.get_attempt_as_xml(key_id)
+    from hackzor.settings import ATTEPMT_TIMEOUT
+    from datetime import datetime
+    for being_eval_attempt in BeingEvaluated.objects.sort_by('time_of_retrieval'):
+        #TODO: Handle the condition that the other evaluator returns a result all of a sudden!
+        now = datetime.now()
+        diff = now - being_eval_attempt.time_of_retrieval
+        if (now.seconds > ATTEPMT_TIMEOUT):
+            attempt = being_eval_attempt.attempt
+            being_eval_attempt.delete()
+            to_be_eval_attempt = ToBeEvaluated(attempt=attempt)
+            to_be_eval_attempt.save()
+        else: break
+    attempt_xmlised = utils.get_attempt_as_xml(keyid)
     if not attempt_xmlised:
         raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
 
-def retreive_question_set (request, key_id):
+def retrieve_question_set (request, key_id):
     """ Get the list of questions  as XML"""
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     question_set_xmlised = utils.get_question_set_as_xml(key_id)
