@@ -53,17 +53,14 @@ urlpatterns = patterns('',
         { 'queryset' : User.objects.all(), 'template_name' : 'view_user.html'}),
 
         # To get an Attempt
-        # TODO: To be used by Evaluator only!! Add encryption!
         (r'^evaluator/(?P<key_id>\w+)/getattempt/',
          'hackzor.server.views.retrieve_attempt',),
 
         # To submit result of an Attempt
-        # TODO: To be used by Evaluator only!! Add encryption!
         (r'^evaluator/(?P<key_id>\w+)/submitattempt/',
          'hackzor.server.views.submit_attempt',),
 
         # To get Question set
-        # TODO: To be used by Evaluator only!! Add encryption!
         (r'^evaluator/(?P<key_id>\w+)/getquestionset/',
          'hackzor.server.views.retrieve_question_set',),
 

@@ -72,8 +72,9 @@ class Question(XMLParser):
         # class
         time_limit = self.get_val_by_id(qn, 'time-limit')
         self.time_limit = float(self.get_val_by_id(qn, 'time-limit'))
-        self.mem_limit = int(self.get_val_by_id(qn, 'mem-limit'))
+        self.mem_limit = 6400000 #int(self.get_val_by_id(qn, 'mem-limit'))
         self.eval_path = self.save_eval_to_disk(qn, qid)
+        #print self.time_limit, self.mem_limit, self.eval_path
 
     def save_input_to_disk(self, input_data, qid):
         inp_path = os.path.join(INPUT_PATH, qid)
@@ -134,6 +135,7 @@ class Attempt(XMLParser):
         self.code = self.get_val_by_id(attempt, 'code')
         self.lang = self.get_val_by_id(attempt, 'lang')
         self.file_name = self.get_val_by_id(attempt, 'file-name')
+        #print 'Booga: ', self.aid, self.qid, self.code, self.lang, self.file_name
 
     def convert_to_result(self, result, msg):
         """Converts an attempt into a corresponding XML file to notify result"""
@@ -161,16 +163,16 @@ class Evaluator:
 
     def run(self, cmd, quest):
         input_file = quest.input_path
-        output_file = tempfile.NamedTemporaryFile()
+        output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
+        # TODO: Replace the above 
         inp = open (input_file, 'r')
-        kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
+        kws = {'shell':True, 'stdin':inp, 'stdout':output_file}#.file}
         start_time = time.time()
         # p = subprocess.Popen(cmd, **kws)
         p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
-
         while True:
             if time.time() - start_time >= quest.time_limit:
-               # TODO: Verify this!!! IMPORTANT
+                # TODO: Verify this!!! IMPORTANT
                 os.kill(p.pid, signal.SIGTERM)
                 #os.system('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
                 print 'Killed Process Tree: '+str(p.pid)
@@ -185,12 +187,16 @@ class Evaluator:
         elif p.returncode == 143:
             raise EvaluatorError('Run-Time Error. Received SIGKILL')
         elif p.returncode != 0 :
+            print p.returncode
             raise EvaluatorError('Run-Time Error. Unknown Error')
         else:
-            output_file.file.flush()
-            output_file.file.seek(0)
-            output = output_file.file.read()
+            #output_file.file.flush()
+            #output_file.file.seek(0)
             output_file.close()
+            output_file = open('/tmp/output','r')#tempfile.NamedTemporaryFile()
+            output = output_file.read()#file.read()
+            output_file.close()
+        print 'returning'
         return output
 
     def save_file(self, file_path, contents):
@@ -233,7 +239,9 @@ class Evaluator:
         op_file.file.flush()
         op_file.file.seek(0)
         kws = {'shell':True, 'stdin':op_file.file}
-        p = subprocess.Popen(eval_path, **kws)
+        #status, output = commands.getstatusoutput('python '+eval_path + ' < '+op_file.name)
+        p = subprocess.Popen('python '+eval_path, **kws)
+        ## TODO: FIX THIS ^^ MOST IMPORTANT
         p.wait()
         op_file.close()
         return str(p.returncode)
@@ -414,10 +422,8 @@ class Client:
                 print msg
                 return_value = 0
             print 'Final Result: ', return_value
-            self.submit_attempt(attempt.convert_to_result(return_value, msg))
+            print self.submit_attempt(attempt.convert_to_result(return_value, msg))
         return return_value
-
-
 if __name__ == '__main__':
     gpg = GPG.GPG()
     Client().start()
