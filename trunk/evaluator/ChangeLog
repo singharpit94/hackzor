@@ -1,3 +1,7 @@
+2006-12-15  Ravi Shankar <ravehanker@gmail.com>
+
+	* main.py (Attempt.convert_to_result): Made Error Msg Passing Mandatory
+
 2006-12-04  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* main.py (Evaluator.run): Added reporting of SIGSEGV, SIGKILL and

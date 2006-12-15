@@ -144,8 +144,9 @@ class Attempt(XMLParser):
         doc.appendChild(root)
         self.add_node(doc, root, 'aid', self.aid)
         self.add_node(doc, root, 'result', str(result))
-        if msg:
-            self.add_node(doc, root, 'error', msg)
+        #if msg:
+            #self.add_node(doc, root, 'error', msg)
+        self.add_node(doc, root, 'error', msg)
         return doc.toxml()
         
 ## TODO: Write about the parameter to methods in each of their doc strings
