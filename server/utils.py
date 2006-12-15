@@ -97,6 +97,7 @@ def get_question_set_as_xml(keyid):
 def get_val_by_id (root, id):
     child_node = root.getElementsByTagName(id)
     if not child_node:
+        print 'Invalid XML file'
         raise EvaluatorError('Invalid XML file')
     return decrypt(child_node[0].firstChild.nodeValue)
 
@@ -105,8 +106,10 @@ def get_result(xmlised_result):
     xml = minidom.parseString(xmlised_result)
     attempt = xml.getElementsByTagName('attempt')
     if not attempt:
+        print "Warning! Empty Attempt recieved."
+        return #TODO: Temporary
         #return error here
-        pass
+        #pass
     attempt = attempt[0]
     # print xml.toprettyxml()
     aid = get_val_by_id(attempt, 'aid')
@@ -118,6 +121,7 @@ def get_result(xmlised_result):
     return (aid, result, error_status)
 
 def decrypt(data):
+    #print 'inside decrypt', data
     global obj
     if type(data) == types.ListType:
         ret_val = []
