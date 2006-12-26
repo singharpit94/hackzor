@@ -111,7 +111,7 @@ def get_result(xmlised_result):
         #return error here
         #pass
     attempt = attempt[0]
-    # print xml.toprettyxml()
+    #print xml.toprettyxml()
     aid = get_val_by_id(attempt, 'aid')
     result = get_val_by_id(attempt, 'result')
     if (int(result) == 0) :

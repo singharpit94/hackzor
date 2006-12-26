@@ -5,6 +5,9 @@
 {% block content %} 
 	<h1> Showing Latest Submissions </h1>
 
+	{% if has_previous %}
+	<a href="{{request.path}}?page={{previous}}">Previous </a>
+	{% endif %}
 	<table border='1'>
 		<tr>
 			<th> 
@@ -22,7 +25,7 @@
 				href="/opc/submits/last{{n}}/orderby/-time_of_submit/{{ for_user }}">Time of Submission</a>
 			</th>
 		</tr>
-		{% for attempt in submissions %}
+		{% for attempt in submissions_list %}
 			<tr>
 				<td><a href="/opc/users/{{attempt.user.user.id}}">
 					{{ attempt.user.user.username }}
@@ -34,4 +37,7 @@
 			</tr>
 		{% endfor %}
 	</table>
+	{% if has_next %}
+	<a href="{{request.path}}?page={{next}}">Next </a>
+	{% endif %}
 {% endblock %}

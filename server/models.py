@@ -24,6 +24,12 @@ class UserProfile(models.Model):
     """ Contains details about the user """
     def __str__(self):
         return self.user.get_full_name()
+    def solves(self, problem):
+        ''' Checks if it has already solved the problem, which is an instance of Question'''
+        if problem not in self.solved.all():
+            self.solved.add(problem)
+            self.score += problem.score
+            self.save()
     
     score = models.PositiveIntegerField(default=0)
     activation_key = models.CharField(maxlength=40)
@@ -47,6 +53,15 @@ class Attempt(models.Model):
     """ Contains Attempt Information """
     def __str__(self):
         return self.user.user.username + ' :' + self.question.name
+    def verified(self, result, error_status): 
+        ''' Updates the DB with the values if result is correct'''
+        if result==True:
+            self.result = True
+            self.user.solves(self.question)
+        else:
+            self.result = False
+        self.error_status = error_status
+        self.save()
     
     user = models.ForeignKey(UserProfile)
     question = models.ForeignKey(Question)

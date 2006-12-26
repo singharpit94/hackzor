@@ -412,7 +412,9 @@ class Client:
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
-        return urllib2.urlopen(r).read()        
+        text =  urllib2.urlopen(r).read()        
+        print text
+        return text
         
     def start(self):
         print 'Evaluator Started'
