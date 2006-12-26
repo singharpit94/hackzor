@@ -11,11 +11,11 @@ CPP_COMPILE_STR = 'g++ -lm -w \'%i\' -o \'%o\''
 JAVA_COMPILE_STR = 'javac \'%i\' -d \'%o\''
 
 WORK_DIR = 'work_files'
-TIME_INTERVAL = 10 # Time between poll to web server for attempts (in seconds)
+TIME_INTERVAL = 5 # Time between poll to web server for attempts (in seconds)
 
-CONTEST_URL = 'http://125.22.66.224:8000'#'http://127.0.0.1:8000' # should typically be same as in
+CONTEST_URL = 'http://opc.kurukshetra.org.in:8000' #'http://127.0.0.1:8000' # should typically be same as in
                                       # ../settings.py
 EVALUATOR_PATH = 'evaluators'
 INPUT_PATH = 'input'
 
-SERVER_KEYID = '57DB4A1EDAC116E1' # Enter the server's Public Key ID
+SERVER_KEYID = 'BCBDB351D1640F3F' # Enter the server's Public Key ID

@@ -1,3 +1,10 @@
+2006-12-26  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py (Question.save_eval_to_disk): Fixed the addition of
+	'\r's during pickling
+	(Evaluator.run): Fixed TLE killing of processes. More work to be
+	done here
+
 2006-12-15  Ravi Shankar <ravehanker@gmail.com>
 
 	* main.py (Attempt.convert_to_result): Made Error Msg Passing Mandatory

@@ -52,7 +52,8 @@ class XMLParser:
         child_node = root.getElementsByTagName(id)
         if not child_node:
             raise EvaluatorError('Invalid XML file')
-        return self.decrypt(child_node[0].firstChild.nodeValue)
+        # dos2unix
+        return self.decrypt(child_node[0].firstChild.nodeValue).replace('\r','')
 
     def add_node(self, doc, root, child, value):
         """ Used to add a text node 'child' with the value of 'value'(duh..) """
@@ -99,7 +100,7 @@ class Question(XMLParser):
         evaluator = pickle.load(eval_file)
         eval_file.close()
         eval_file = open(eval_file_path, 'w')
-        eval_file.write(evaluator)
+        eval_file.write(evaluator.replace('\r','')) # dos2unix
         eval_file.close()
         os.chmod(eval_file_path, 0700) # set executable permission for
                                        # evaluator
@@ -164,18 +165,33 @@ class Evaluator:
 
     def run(self, cmd, quest):
         input_file = quest.input_path
-        output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
-        # TODO: Replace the above 
+        # output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
+        output_file = tempfile.NamedTemporaryFile()
         inp = open (input_file, 'r')
-        kws = {'shell':True, 'stdin':inp, 'stdout':output_file}#.file}
+        kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
         start_time = time.time()
-        # p = subprocess.Popen(cmd, **kws)
         p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
         while True:
             if time.time() - start_time >= quest.time_limit:
                 # TODO: Verify this!!! IMPORTANT
-                os.kill(p.pid, signal.SIGTERM)
-                #os.system('pkill -P '+str(p.pid)) # Try to implement pkill -P internally
+                # os.kill(p.pid+1, signal.SIGTERM)
+                # os.system('pkill -KILL -P '+str(p.pid)) # Try to implement pkill -P
+                # internally
+                # os.system('pkill '+cmd)
+                status, psid = commands.getstatusoutput('pgrep -f '+cmd)
+                # crude soln. Debatable whether to use or not
+                if psid == '':
+                    print 'oO Problem and problem. Kill manually'
+                    print cmd
+                    psid = [p.pid]
+
+                for proc in psid:
+                    print 'Killing psid '+proc
+                    try:
+                        os.kill (int(proc), signal.SIGKILL)
+                    except OSError:
+                        # process does not exist
+                        pass
                 print 'Killed Process Tree: '+str(p.pid)
                 raise EvaluatorError('Time Limit Expired')
             elif p.poll() != None:
@@ -191,13 +207,13 @@ class Evaluator:
             print p.returncode
             raise EvaluatorError('Run-Time Error. Unknown Error')
         else:
-            #output_file.file.flush()
-            #output_file.file.seek(0)
+            output_file.file.flush()
+            output_file.file.seek(0)
+            # output_file.close()
+            # output_file = open('/tmp/output','r')#tempfile.NamedTemporaryFile()
+            output = output_file.file.read()
             output_file.close()
-            output_file = open('/tmp/output','r')#tempfile.NamedTemporaryFile()
-            output = output_file.read()#file.read()
-            output_file.close()
-        print 'returning'
+        #print 'returning'
         return output
 
     def save_file(self, file_path, contents):
@@ -240,9 +256,7 @@ class Evaluator:
         op_file.file.flush()
         op_file.file.seek(0)
         kws = {'shell':True, 'stdin':op_file.file}
-        #status, output = commands.getstatusoutput('python '+eval_path + ' < '+op_file.name)
-        p = subprocess.Popen('python '+eval_path, **kws)
-        ## TODO: FIX THIS ^^ MOST IMPORTANT
+        p = subprocess.Popen(eval_path, **kws)
         p.wait()
         op_file.close()
         return str(p.returncode)
