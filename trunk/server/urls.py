@@ -9,14 +9,15 @@ problem_dict = {
 urlpatterns = patterns('',
 
         # For now the problem set is the home page
-        (r'^$', 'django.views.generic.list_detail.object_list',
-            dict(problem_dict, template_name='problem_set.html')),
+        ('^$', 
+            'django.views.generic.simple.redirect_to', 
+            {'url': 'problems'}
+        ),
 
         # To list the problem set
-        # Warning : Displayes a 404 if the Question Model is empty
         (r'^problems/$',
             'django.views.generic.list_detail.object_list',
-            dict(problem_dict, template_name='problem_set.html')),
+            dict(problem_dict, template_name='problem_set.html', allow_empty=True)),
 
         # To display a particular problem
         #(r'^problems/(?P<object_id>\d+)/$',
@@ -39,10 +40,10 @@ urlpatterns = patterns('',
         # TOP 10 list
         (r'^top10/$',
             'django.views.generic.list_detail.object_list',
-            { 'queryset' : UserProfile.objects.order_by('-score')[:10], 'template_name' : 'view_toppers.html' }),
+            { 'queryset' : UserProfile.objects.filter(user__is_active=True).order_by('-score')[:10], 'template_name' : 'view_toppers.html' }),
 
         # Last n submits 
-        (r'^submits/last(?P<n>\d+)/(orderby/(?P<sort_by>(-)?\w+)/)?((?P<for_user>\w+)/)?$',
+        (r'^submits/last(?P<n>\d+)(/orderby/(?P<sort_by>(-)?\w+))?(/(?P<for_user>\w+))?/',
             'hackzor.server.views.view_last_n_submissions',),
 
         # To display a particular user's Stats

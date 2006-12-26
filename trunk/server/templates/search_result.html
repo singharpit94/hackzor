@@ -10,10 +10,10 @@
             <p>Sorry, No results match your query. Please try again</p>
         {% else %}
             {% for res in result %}
-				{% if object.time_limit %}
-					<li><a href="/opc/problems/{{ res.id }}">
-				{% else %}
+				{% if res.username %}
 					<li><a href="/opc/users/{{ res.id }}">
+				{% else %}
+					<li><a href="/opc/problems/{{ res.id }}">
 				{% endif %}
 				{{ res }} </a></li>
             {% endfor %}
