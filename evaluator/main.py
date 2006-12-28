@@ -12,9 +12,12 @@ import cookielib
 import urllib2
 import resource
 import types
+import base64
+import StringIO
 import xml.dom.minidom as minidom
 
 from settings import *
+import rules
 import GPG
 
 class EvaluatorError(Exception):
@@ -58,6 +61,7 @@ class XMLParser:
     def add_node(self, doc, root, child, value):
         """ Used to add a text node 'child' with the value of 'value'(duh..) """
         node = doc.createElement(child)
+        # print 'adding value', value
         value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
         node.appendChild(doc.createTextNode(value))
         root.appendChild(node)
@@ -92,16 +96,20 @@ class Question(XMLParser):
         # Save the pickled Evaluator binary to disk
         evaluator = self.decrypt(qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue)
         eval_file_path = os.path.join(EVALUATOR_PATH, qid)
+        ev = StringIO.StringIO()
+        ev.write(evaluator)
+        ev.seek(0)
+#         eval_file = open(eval_file_path, 'w')
+#         eval_file.write(evaluator)
+#         eval_file.close()
         eval_file = open(eval_file_path, 'w')
-        eval_file.write(evaluator)
+        base64.decode(ev, eval_file)
+        # del evaluator
+#         evaluator = pickle.load(eval_file)
         eval_file.close()
-        eval_file = open(eval_file_path, 'r')
-        del evaluator
-        evaluator = pickle.load(eval_file)
-        eval_file.close()
-        eval_file = open(eval_file_path, 'w')
-        eval_file.write(evaluator.replace('\r','')) # dos2unix
-        eval_file.close()
+#         eval_file = open(eval_file_path, 'w')
+#         eval_file.write(evaluator.replace('\r','')) # dos2unix
+#         eval_file.close()
         os.chmod(eval_file_path, 0700) # set executable permission for
                                        # evaluator
         return eval_file_path
@@ -145,8 +153,8 @@ class Attempt(XMLParser):
         doc.appendChild(root)
         self.add_node(doc, root, 'aid', self.aid)
         self.add_node(doc, root, 'result', str(result))
-        #if msg:
-            #self.add_node(doc, root, 'error', msg)
+        if int(result) in rules.rules.keys():
+            msg = rules.rules[int(result)]
         self.add_node(doc, root, 'error', msg)
         return doc.toxml()
         
@@ -165,7 +173,10 @@ class Evaluator:
 
     def run(self, cmd, quest):
         input_file = quest.input_path
-        # output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
+#         if cmd.startswith('java'):
+#             input_file = os.path.join('..',input_file)
+#         print input_file
+        # Output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
         output_file = tempfile.NamedTemporaryFile()
         inp = open (input_file, 'r')
         kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
@@ -180,11 +191,14 @@ class Evaluator:
                 # os.system('pkill '+cmd)
                 status, psid = commands.getstatusoutput('pgrep -f '+cmd)
                 # crude soln. Debatable whether to use or not
+                psid = psid.splitlines()
+                if os.getpid() in psid:
+                    psid.remove(os.getpid()) # do not kill evaluator itself in
+                                        # case of python TLE
                 if psid == '':
-                    print 'oO Problem and problem. Kill manually'
+                    print 'oO Problems of problems. Kill manually'
                     print cmd
                     psid = [p.pid]
-
                 for proc in psid:
                     print 'Killing psid '+proc
                     try:
@@ -197,6 +211,7 @@ class Evaluator:
             elif p.poll() != None:
                 break
             time.sleep(0.5)
+        print 'Return Value: ', p.returncode
         if p.returncode == 139:
             raise EvaluatorError('Run-Time Error. Received SIGSEGV')
         elif p.returncode == 137:
@@ -213,7 +228,6 @@ class Evaluator:
             # output_file = open('/tmp/output','r')#tempfile.NamedTemporaryFile()
             output = output_file.file.read()
             output_file.close()
-        #print 'returning'
         return output
 
     def save_file(self, file_path, contents):
@@ -235,18 +249,18 @@ class Evaluator:
         # main class name. So having a workaround. The attempts are saved
         #(for archival purposes only) and java files are also saved in a
         # temporary directory called java
-        if attempt.lang == 'java':
+        if attempt.lang.lower() == 'java':
             save_loc = os.path.join('java', attempt.file_name)
             code_file = self.save_file(save_loc, attempt.code)
 
         # Compile the File
+        print os.getcwd()
         exec_file = self.compile(code_file)
-
+        print os.getcwd()
         cmd = self.get_run_cmd(exec_file)
-        
+        print os.getcwd(), cmd        
         # Execute the file for preset input
         output = self.run(cmd, quest)
-
         # Match the output to expected output
         return self.check(attempt, output, quest.eval_path)
 
@@ -412,9 +426,7 @@ class Client:
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)
-        text =  urllib2.urlopen(r).read()        
-        print text
-        return text
+        return urllib2.urlopen(r).read()
         
     def start(self):
         print 'Evaluator Started'
@@ -436,9 +448,8 @@ class Client:
             except EvaluatorError:
                 print 'EvaluatorError: '
                 msg = sys.exc_info()[1].error
-                print msg
-                return_value = 0
-            print 'Final Result: ', return_value
+                return_value = 3
+            print 'Final Result: ', return_value, msg
             print self.submit_attempt(attempt.convert_to_result(return_value, msg))
         return return_value
 if __name__ == '__main__':
