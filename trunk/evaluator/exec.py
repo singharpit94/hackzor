@@ -7,8 +7,8 @@ import commands
 mem_limit = int(sys.argv[1])
 resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
 # TODO: Correct the Maximum No of open Files! Currently not working
-# no_of_files = 5
-# resource.setrlimit(resource.RLIMIT_NOFILE, (no_of_files, no_of_files))
+no_of_files = 3
+#resource.setrlimit(resource.RLIMIT_NOFILE, (no_of_files, no_of_files))
 cmd = sys.argv[2]
 
 #args = ''
@@ -22,5 +22,6 @@ cmd = sys.argv[2]
 
 #os.system(os.path.join(os.getcwd(), cmd))
 #sys.exit(os.system(cmd))
-status, op = commands.getstatusoutput(cmd)
+#status, op = commands.getstatusoutput(cmd)
+os.execv(cmd,[])
 print op
