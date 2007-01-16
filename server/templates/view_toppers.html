@@ -5,17 +5,25 @@
 {% block content %} 
 	<h1> Showing Top 10 Scorers </h1>
 
+	{% if has_previous %}
+		<a href="{{request.path}}?page={{previous}}">Previous </a>
+	{% endif %}
 	<table border='1'>
 			<tr>
+				<th> Rank </th>
 				<th> User Name</th>
 				<th> Score </th>
 			</tr>
 		{% for user in object_list %}
 			<tr>
+				<td> {{forloop.counter}} </td>
 				<td> 
                     <a href="/opc/users/{{user.user.id}}">{{user.user.username }}</a> </td>
 				<td> {{ user.score }} </td>
 			</tr>
 		{% endfor %}
 	</table>
+	{% if has_next %}
+		<a href="{{request.path}}?page={{next}}">Next </a>
+	{% endif %}
 {% endblock %}

@@ -53,6 +53,7 @@ TEMPLATE_LOADERS = (
 MIDDLEWARE_CLASSES = (
     'django.middleware.common.CommonMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    #'django.middleware.cache.CacheMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
 )
@@ -69,7 +70,8 @@ TEMPLATE_CONTEXT_PROCESSORS = (
         "django.core.context_processors.auth",
         "django.core.context_processors.debug",
         "django.core.context_processors.i18n",
-        "django.core.context_processors.request"
+        "django.core.context_processors.request",
+        "hackzor.server.views.get_contest_times"
 )
 
 INSTALLED_APPS = (
@@ -97,3 +99,9 @@ SESSION_COOKIE_AGE =1800
 # This is that time that will be given before the attempt it retrieved will be
 # moved back to TobeEvaluated
 ATTEMPT_TIMEOUT = 60 # In Seconds
+
+#For Cache
+# Caching might create problems with individual pages. Make the site per-view cached
+#CACHE_BACKEND = 'simple:///'
+#CACHE_MIDDLEWARE_SECONDS = 10
+#CACHE_MIDDLEWARE_KEY_PREFIX = ''

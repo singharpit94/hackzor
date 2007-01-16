@@ -5,25 +5,30 @@ import hackzor.evaluator.GPG as GPG
 
 class Question(models.Model):
     """ Contains the question content and path to evaluators and test cases """
-    def __str__(self):
-        return self.name
-    
     name = models.CharField(maxlength=32)
     text = models.TextField()
     # TODO: Input testcases are visible to the user, put them into some safe place 
+    # TODO: Make the test_input and evaluator_path a part of the database, rather than as files
     test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
     evaluator_path = models.FileField(upload_to = 'hidden/evaluators/pyCode/')
     score = models.IntegerField()
     time_limit = models.FloatField(max_digits=3, decimal_places = 1)
     memory_limit = models.PositiveIntegerField()
     source_limit = models.PositiveIntegerField()
+    submission_limit = models.PositiveIntegerField()
+
+    def __str__(self):
+        return self.name
+
     class Admin: pass
 
 
 class UserProfile(models.Model):
     """ Contains details about the user """
+
     def __str__(self):
         return self.user.get_full_name()
+
     def solves(self, problem):
         ''' Checks if it has already solved the problem, which is an instance of Question'''
         if problem not in self.solved.all():
@@ -36,23 +41,28 @@ class UserProfile(models.Model):
     key_expires = models.DateTimeField() 
     user = models.OneToOneField(User)
     solved = models.ManyToManyField(Question)
+
     class Admin: pass
 
 
 class Language(models.Model):
     """ Contains only the language name for now, should contain the compiler name later
     ( helpful incase we need to rejudge all submission on a previous version ) """
+
     def __str__(self):
         return self.compiler
     
     compiler = models.CharField(maxlength=32)
+
     class Admin: pass
 
 
 class Attempt(models.Model):
     """ Contains Attempt Information """
+
     def __str__(self):
         return self.user.user.username + ' :' + self.question.name
+
     def verified(self, result, error_status): 
         ''' Updates the DB with the values if result is correct'''
         if result==True:
@@ -71,6 +81,7 @@ class Attempt(models.Model):
     language = models.ForeignKey(Language)
     time_of_submit = models.DateTimeField(auto_now_add=True)
     error_status = models.TextField()
+
     class Admin: pass
 
 
@@ -103,4 +114,5 @@ class PGP(models.Model):
                 self.keyid = keys['keyid']
                 # This is to call the 'real' Save function
                 super(PGP, self).save()
+
     class Admin:pass

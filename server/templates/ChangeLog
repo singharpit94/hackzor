@@ -1,6 +1,13 @@
 2006-12-04  Ravi Shankar <ravehanker@gmail.com>
 
 	* search_result.html: corrected links to users
+	* view_toppers.html: Added Rank as an extra column and paginated the
+	links. Pagination works when enabled from view
+	* home.html, change_profile.html, 404.html, 500.html: Added
+	* view_problem.html: Removed all other fields and displays only content
+	* submit_code.html: Added shebang warning
+	* reset_password.html, login.html: Corrected Typo
+	* view_submissions: Added link to sort by question
 
 2006-12-03  Ravi Shankar <ravehanker@gmail.com>
 

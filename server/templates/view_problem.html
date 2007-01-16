@@ -3,11 +3,15 @@
 {% block title %} {{ block.super }} - Problem {{object.id}} - {{object.name}} {% endblock %}
 
 {% block content %} 
+	<p>
+	{% comment %}
+	 TODO: Add other fields like submission limit here 
+	{% endcomment %}
+	{{object.text}}
+	</p>
+	{% comment %}
 	<h1> {{object.name}} </h1>
     Points - {{ object.score }}
-	<p>
-	{{object.text}}
-<!--	<p>
 	<table>
 		{% for i in testCase %}
 			<tr>
@@ -16,5 +20,5 @@
 			</tr>
 		{% endfor %}
 	</table>
-	-->
+	{% endcomment %}
 {% endblock %}
