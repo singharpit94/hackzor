@@ -38,7 +38,16 @@ class XMLParser:
     def __init__(self):
         raise NotImplementedError('XMLParser class is not to be instantiated')
 
+    def dos2unix(self, data):
+        """Converts text from DOS CRLF to UNIX LF"""
+        from string import join, split
+        return join(split(data, '\r\n'), '\n')
+
     def decrypt(self, value):
+        """Converts the obtained cipher text into clear text. Decrypting is
+        based on the private key of the recipient, so the keyid is not
+        required.
+        """
         if type(value) == types.ListType:
             ret_val = []
             for val in value:
@@ -55,13 +64,12 @@ class XMLParser:
         child_node = root.getElementsByTagName(id)
         if not child_node:
             raise EvaluatorError('Invalid XML file')
-        # dos2unix
-        return self.decrypt(child_node[0].firstChild.nodeValue).replace('\r','')
+        return self.dos2unix(self.decrypt(child_node[0].firstChild.nodeValue))
 
     def add_node(self, doc, root, child, value):
-        """ Used to add a text node 'child' with the value of 'value'(duh..) """
+        """ Used to add a text node 'child' with the value of 'value'(duh..)
+        """
         node = doc.createElement(child)
-        # print 'adding value', value
         value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
         node.appendChild(doc.createTextNode(value))
         root.appendChild(node)
@@ -70,18 +78,17 @@ class XMLParser:
 class Question(XMLParser):
     """Defines the Characteristics of each question in the contest"""
     def __init__(self, qn, qid):
-        #self.input_data = self.get_val_by_id(qn, 'input-data')
-        input_path = self.get_val_by_id(qn, 'input-data')
-        self.input_path = self.save_input_to_disk(input_path, qid)
+        input_data = self.get_val_by_id(qn, 'input-data')
+        self.input_path = self.save_input_to_disk(input_data, qid)
         # TODO: Consider grouping all the contraint variables inside a `Limit'
         # class
-        time_limit = self.get_val_by_id(qn, 'time-limit')
         self.time_limit = float(self.get_val_by_id(qn, 'time-limit'))
-        self.mem_limit = 6400000 #int(self.get_val_by_id(qn, 'mem-limit'))
+        self.mem_limit = int(self.get_val_by_id(qn, 'mem-limit'))
         self.eval_path = self.save_eval_to_disk(qn, qid)
         #print self.time_limit, self.mem_limit, self.eval_path
 
     def save_input_to_disk(self, input_data, qid):
+        """Saves the input file to disk"""
         inp_path = os.path.join(INPUT_PATH, qid)
         inp_file = open(inp_path, 'w')
         input_data = str(input_data)
@@ -99,19 +106,11 @@ class Question(XMLParser):
         ev = StringIO.StringIO()
         ev.write(evaluator)
         ev.seek(0)
-#         eval_file = open(eval_file_path, 'w')
-#         eval_file.write(evaluator)
-#         eval_file.close()
         eval_file = open(eval_file_path, 'w')
         base64.decode(ev, eval_file)
-        # del evaluator
-#         evaluator = pickle.load(eval_file)
         eval_file.close()
-#         eval_file = open(eval_file_path, 'w')
-#         eval_file.write(evaluator.replace('\r','')) # dos2unix
-#         eval_file.close()
         os.chmod(eval_file_path, 0700) # set executable permission for
-                                       # evaluator
+                                       # code checker
         return eval_file_path
 
     
@@ -121,8 +120,7 @@ class Questions(XMLParser):
         xml = minidom.parseString(xml_file)
         qn_set = xml.getElementsByTagName('question-set')[0]
         if not qn_set:
-            #return error here
-            pass
+            pass # TODO: return error here
         self.questions = {}
         for qn in qn_set.getElementsByTagName('question'):
             qid = str(qn.getAttribute('id').strip())
@@ -135,30 +133,31 @@ class Attempt(XMLParser):
         xml = minidom.parseString(xml_file)
         attempt = xml.getElementsByTagName('attempt')
         if not attempt:
-            #return error here
-            pass
+            pass # TODO: return error here
         attempt = attempt[0]
-        #print xml.toprettyxml()
         self.aid = self.get_val_by_id(attempt, 'aid')
         self.qid = self.get_val_by_id(attempt, 'qid')
         self.code = self.get_val_by_id(attempt, 'code')
         self.lang = self.get_val_by_id(attempt, 'lang')
         self.file_name = self.get_val_by_id(attempt, 'file-name')
-        #print 'Booga: ', self.aid, self.qid, self.code, self.lang, self.file_name
+
 
     def convert_to_result(self, result, msg):
         """Converts an attempt into a corresponding XML file to notify result"""
         doc = minidom.Document()
-        root = doc.createElementNS('http://code.google.com/p/hackzor', 'attempt')
+        root = doc.createElementNS('http://code.google.com/p/hackzor',
+                                   'attempt')
+        
         doc.appendChild(root)
         self.add_node(doc, root, 'aid', self.aid)
         self.add_node(doc, root, 'result', str(result))
         if int(result) in rules.rules.keys():
             msg = rules.rules[int(result)]
         self.add_node(doc, root, 'error', msg)
+        print msg
         return doc.toxml()
         
-## TODO: Write about the parameter to methods in each of their doc strings
+
 class Evaluator:
     """Provides the base functions for evaluating an attempt.
     NOTE: This class is not to be instantiated"""
@@ -171,46 +170,67 @@ class Evaluator:
     def get_run_cmd(self, exec_file):
         raise NotImplementedError('Must be Overridden')
 
+    def is_compiled(self):
+        raise NotImplementedError('Must be Overridden')
+
+    def get_additional_time(self):
+        """In the case that a particular language is to be awarded extra
+        execution time over ride this function. The return value in seconds
+        will be the amount of extra execution time awarded to the program
+        """
+        return 0 # Defaults to no additional time
+
+    def get_additional_mem(self):
+        """In the case that a particular language is to be awarded extra
+        memory over ride this function. The return value in bytes will be the
+        amount of extra execution time awarded to the program
+        """
+        return 0 # Defaults to no additional memory
+
     def run(self, cmd, quest):
+        """Execute the command `cmd' and returns the execution output file
+        descriptor in a tempfile.NamedTemporaryFile() object.
+        """
         input_file = quest.input_path
-#         if cmd.startswith('java'):
-#             input_file = os.path.join('..',input_file)
-#         print input_file
-        # Output_file = open('/tmp/output','w')#tempfile.NamedTemporaryFile()
         output_file = tempfile.NamedTemporaryFile()
+        # subprocess will not accept StringIO objects
         inp = open (input_file, 'r')
         kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
         start_time = time.time()
+        mem_limit = quest.mem_limit + self.get_additional_mem()
+        time_limit = quest.time_limit + self.get_additional_time()
+        # TODO: Convert all these print statements in logging files
+        print 'Running: ', cmd
+        print 'Memory limit: ', mem_limit
+        print 'Time limit: ', time_limit
+        # TODO: pass the input file as a parameter to exec.py too
         p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
         while True:
             if time.time() - start_time >= quest.time_limit:
-                # TODO: Verify this!!! IMPORTANT
-                # os.kill(p.pid+1, signal.SIGTERM)
-                # os.system('pkill -KILL -P '+str(p.pid)) # Try to implement pkill -P
-                # internally
-                # os.system('pkill '+cmd)
-                status, psid = commands.getstatusoutput('pgrep -f '+cmd)
-                # crude soln. Debatable whether to use or not
+                inp.close()
+                # TODO: Try to execute the KILL code internall with no
+                # dependancies
+                print 'pgreping for '+os.path.basename(cmd)
+                status, psid = commands.getstatusoutput('pgrep -f '+os.path.basename(cmd))
+
                 psid = psid.splitlines()
                 if os.getpid() in psid:
                     psid.remove(os.getpid()) # do not kill evaluator itself in
-                                        # case of python TLE
+                                        # case of a python TLE
                 if psid == '':
                     print 'oO Problems of problems. Kill manually'
-                    print cmd
                     psid = [p.pid]
                 for proc in psid:
                     print 'Killing psid '+proc
                     try:
                         os.kill (int(proc), signal.SIGKILL)
                     except OSError:
-                        # process does not exist
-                        pass
+                        pass # process does not exist
                 print 'Killed Process Tree: '+str(p.pid)
                 raise EvaluatorError('Time Limit Expired')
             elif p.poll() != None:
                 break
-            time.sleep(0.5)
+            time.sleep(PS_POLL_INTVL)
         print 'Return Value: ', p.returncode
         if p.returncode == 139:
             raise EvaluatorError('Run-Time Error. Received SIGSEGV')
@@ -224,11 +244,7 @@ class Evaluator:
         else:
             output_file.file.flush()
             output_file.file.seek(0)
-            # output_file.close()
-            # output_file = open('/tmp/output','r')#tempfile.NamedTemporaryFile()
-            output = output_file.file.read()
-            output_file.close()
-        return output
+        return output_file
 
     def save_file(self, file_path, contents):
         """ Save the contents in the file given by file_path relative inside
@@ -242,6 +258,7 @@ class Evaluator:
         return file_path
 
     def evaluate(self, attempt, quest):
+        """Evaluate the attempt and serve the ruling"""
         # Save the File
         save_loc = attempt.aid + '-' + attempt.qid + '-' + attempt.file_name
         code_file = self.save_file(save_loc, attempt.code)
@@ -249,30 +266,35 @@ class Evaluator:
         # main class name. So having a workaround. The attempts are saved
         #(for archival purposes only) and java files are also saved in a
         # temporary directory called java
-        if attempt.lang.lower() == 'java':
-            save_loc = os.path.join('java', attempt.file_name)
+        if attempt.lang.lower() == JAVA_TEMP_DIR:
+            save_loc = os.path.join(JAVA_TEMP_DIR, attempt.file_name)
             code_file = self.save_file(save_loc, attempt.code)
 
         # Compile the File
-        print os.getcwd()
         exec_file = self.compile(code_file)
-        print os.getcwd()
         cmd = self.get_run_cmd(exec_file)
-        print os.getcwd(), cmd        
         # Execute the file for preset input
-        output = self.run(cmd, quest)
+        try:
+            output = self.run(cmd, quest)
+        except:
+            if self.is_compiled():  # TODO: replace this with a
+                                        # variable in settings.py
+                os.remove(exec_file)
+            raise
+        if self.is_compiled():
+            os.remove(exec_file)
         # Match the output to expected output
         return self.check(attempt, output, quest.eval_path)
 
     def check(self, attempt, output, eval_path):
-        op_file = tempfile.NamedTemporaryFile()
-        op_file.file.write(output)
-        op_file.file.flush()
-        op_file.file.seek(0)
-        kws = {'shell':True, 'stdin':op_file.file}
+        """This receives a tempfile.NamedTemporaryFile object which contains
+        the output of the user program
+        """
+        output.seek(0)
+        kws = {'shell':True, 'stdin':output.file}
         p = subprocess.Popen(eval_path, **kws)
         p.wait()
-        op_file.close()
+        output.close()
         return str(p.returncode)
 
 
@@ -284,13 +306,16 @@ class C_Evaluator(Evaluator):
         return 'C Evaluator'
 
     def get_run_cmd(self, exec_file):
-        return exec_file
+        return os.path.join('.', exec_file)
+
+    def is_compiled(self):
+        return True
 
     def compile(self, code_file):
         output_file = code_file # Change this value to change output file name
         # replace the code with the object file
+        code_file = code_file.replace('\'','\\\'').replace('\"','\\\"')
         cmd = self.compile_cmd.replace('%i',code_file).replace('%o',output_file)
-
         (status, output) = commands.getstatusoutput(cmd)
         if status != 0:
             raise EvaluatorError('Compiler Error', output)
@@ -306,49 +331,116 @@ class CPP_Evaluator(C_Evaluator):
         return 'C++ Evaluator'
     
 
+class CSharp_Evaluator(C_Evaluator):
+    """NOTE: No of processes should not be limited to 0 for the CSharp Eval to
+    work. It usually forks about 15-20 times on initialising
+    """
+    def __init__(self):
+        self.compile_cmd = CSHARP_COMPILE_STR
+
+    def __str__(self):
+        return 'CSharp Evaluator'
+
+    def get_additional_mem(self):
+        return 15*1024*1024
+
+    def compile(self, code_file):
+        return C_Evaluator.compile(self, code_file)+'.exe'
+
+
 class Java_Evaluator(Evaluator):
     def __str__(self):
         return 'Java Evaluator'
 
     def __init__(self):
         self.compile_cmd = JAVA_COMPILE_STR
+        self.link_cmd = JAVA_LINK_STR
 
     def get_run_cmd(self, exec_file):
-        return 'java '+exec_file
+        return exec_file
+
+    def is_compiled(self):
+        return True
+    
+    def get_additional_mem(self):
+        return 20*1024*1024
+    
+    def get_additional_time(self):
+        return 2.0
 
     def compile(self, code_file):
+        """When we use GCJ to convert the java file to native binary, it goes
+        through two phases, the compiling phase and the linking phase
+        """
         output_dir, file_name = os.path.split(code_file)
-        cmd = self.compile_cmd.replace('%i',code_file).replace('%o',
-                                                                output_dir)
+        code_file = code_file.replace('\'','\\\'')
+        cmd = self.compile_cmd.replace('%i',code_file)
         if file_name [-5:] != '.java':
             raise EvaluatorError('Compiler Error', 'Not a Java File')
         file_name = file_name [:-5]
         (status, output) = commands.getstatusoutput(cmd)
         if status != 0:
             raise EvaluatorError('Compiler Error', output)
+        out = os.path.join(WORK_DIR, file_name)
+        cmd = self.link_cmd.replace('%i', file_name).replace('%o', out)
+        (status, output) = commands.getstatusoutput(cmd)
+        if status != 0:
+            raise EvaluatorError('Compiler Error', output)
         else:
-            return file_name
+            return out
 
-
-class Python_Evaluator(Evaluator):
-    def __str__(self):
-        return 'Python Evaluator'
-
+class Interpreted_Language(Evaluator):
     def compile(self, code_file):
-        """ Nothing to Compile in the case of Python. Aha *Magic*!"""
+        """ Nothing to Compile. Aha *Magic*!"""
         os.chmod(code_file,0700)
         return code_file
 
     def get_run_cmd(self, exec_file):
-        #return 'python '+exec_file
-        return exec_file
+        return os.path.join('.', exec_file)
+    # SHEBANG line is very very important for this to work.!
+    # python = /usr/bin/env python
+    # ruby = /usr/bin/ruby
+    # perl = /usr/bin/perl
+    # PHP = /usr/bin/php
     
+    def is_compiled(self):
+        return False
+
+    def get_additional_mem(self):
+        return 20*1024*1024
+
+    def get_additional_time(self):
+        return 2.0
+
+
+class Python_Evaluator(Interpreted_Language):
+    def __str__(self):
+        return 'Python Evaluator'
+
+class Ruby_Evaluator(Interpreted_Language):
+    def __str__(self):
+        return 'Ruby Evaluator'
+    
+class Perl_Evaluator(Interpreted_Language):
+    def __str__(self):
+        return 'Perl Evaluator'
+
+    def get_additional_mem(self):
+        return 10*1024*1024 # Perl is much more light weight compared to the
+                            # other interpreted languages
+
+
+class PHP_Evaluator(Interpreted_Language):
+    def __str__(self):
+        return 'PHP Evaluator'
+
 
 class Client:
     """ The Evaluator will evaluate and update the status """
-    # TODO: Avoid HardCoding Language Options
     evaluators = {'c':C_Evaluator, 'c++':CPP_Evaluator,
-                  'java':Java_Evaluator, 'python':Python_Evaluator}
+                  'java':Java_Evaluator, 'python':Python_Evaluator,
+                  'ruby':Ruby_Evaluator, 'php':PHP_Evaluator,
+                  'perl':Perl_Evaluator, 'csharp':CSharp_Evaluator}
     obj = GPG.GPG()
     def __init__(self):
         fpr = self.obj.fingerprints()[0]
@@ -366,15 +458,17 @@ class Client:
 #         server_key = self.read_page(self.get_pub_key)
 #         SERVER_KEYID = self.import_key(server_key)
 
-    def import_key(key):
-        try:
-            imp = self.obj.import_key(key)
-        except KeyError:
-            print 'Unable to import'
-            return # TODO: Should it fail here?
-        for keys in self.obj.list_keys():
-            if keys['fingerprint'] == imp['fingerprint']:
-                return keys['keyid']
+# Uncomment the below region when automatic retreival of Public key is implemented
+#     def import_key(self, key):
+#         """This will import the Server's public key to the local PGP keyring"""
+#         try:
+#             imp = self.obj.import_key(key)
+#         except KeyError:
+#             print 'Unable to import'
+#             return # TODO: Should it fail here?
+#         for keys in self.obj.list_keys():
+#             if keys['fingerprint'] == imp['fingerprint']:
+#                 return keys['keyid']
         
     def read_page(self, website):
         cj = cookielib.CookieJar()
@@ -387,20 +481,11 @@ class Client:
     
     def get_attempt(self):
         """ Keep polling the server until an attempt to be evaluated is
-        obtained """
+        obtained
+        """
         req = urllib2.Request(self.get_attempt_url, None)
         req = urllib2.urlopen(req)
         return Attempt(req.read())
-
-    def score(self, result, score):
-        """Apply a function on the result to generate the score.. in case you
-        want to have step wise scoring"""
-        ## TODO: The scoring logic should be moved into the question setter's
-        ## evaluator logic
-        if result == True:
-            return score
-        else:
-            return 0
 
     def evaluate(self, attempt, quest):
         """ Evaluate the attempt and return the ruling :-) 
@@ -419,8 +504,10 @@ class Client:
             raise
             
     def submit_attempt(self, attempt_xml):
+        """This will submit the XML file containing the result of the attempt
+        back to the server
+        """
         host = CONTEST_URL
-        #selector = self.submit_attempt_url_select
         selector = self.submit_attempt_url
         attempt_xml = self.obj.sign(attempt_xml).data
         headers = {'Content-Type': 'application/xml',
@@ -431,17 +518,14 @@ class Client:
     def start(self):
         print 'Evaluator Started'
         while True:
-            #TODO: Temporary hack for catching 404, Corrrect it later
             try:
                 print 'Waiting for Attempt'
                 attempt = self.get_attempt()
             except urllib2.HTTPError:
-                attempt = None
-            if attempt == None:
-                # No attempts in web server queue to evaluate
+                attempt = None  # No attempts in web server queue to evaluate
                 time.sleep(TIME_INTERVAL)
                 continue
-            # evaluate the attempt
+            # Evaluate the attempt
             try:
                 return_value = self.evaluate(attempt, self.question_set.questions[str(attempt.qid)])
                 msg = ''
