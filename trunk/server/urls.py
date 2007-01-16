@@ -10,8 +10,10 @@ urlpatterns = patterns('',
 
         # For now the problem set is the home page
         ('^$', 
-            'django.views.generic.simple.redirect_to', 
-            {'url': 'problems'}
+            'django.views.generic.simple.direct_to_template',
+            {'template': 'home.html'}
+            #'django.views.generic.simple.redirect_to', 
+            #{'url': 'problems'}
         ),
 
         # To list the problem set
@@ -20,11 +22,11 @@ urlpatterns = patterns('',
             dict(problem_dict, template_name='problem_set.html', allow_empty=True)),
 
         # To display a particular problem
-        #(r'^problems/(?P<object_id>\d+)/$',
-        #'django.views.generic.list_detail.object_detail',
-        #dict(problem_dict, template_name='view_problem.html')),
-        (r'^problems/(?P<id>\d+)/$',
-            'hackzor.server.views.view_problem'),
+        (r'^problems/(?P<object_id>\d+)/$',
+        'django.views.generic.list_detail.object_detail',
+        dict(problem_dict, template_name='view_problem.html')),
+        #(r'^problems/(?P<id>\d+)/$',
+            #'hackzor.server.views.view_problem'),
 
         # Submit Solution Page
         (r'^problems/(?P<problem_no>\d+)/submit/$',

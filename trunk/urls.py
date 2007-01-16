@@ -42,6 +42,10 @@ urlpatterns = patterns('',
         (r'^accounts/changepassword/$',
             'hackzor.server.views.change_password'),
 
+        # To Change Profile Details
+        (r'^accounts/myaccount/$',
+            'hackzor.server.views.change_details'),
+
         # Admin Interface 
         (r'^admin/', 
             include('django.contrib.admin.urls')),

@@ -27,10 +27,8 @@
 		</tr>
 		{% for attempt in submissions_list %}
 			<tr>
-				<td><a href="/opc/users/{{attempt.user.user.id}}">
-					{{ attempt.user.user.username }}
-				</a></td>
-				<td> {{ attempt.question.name }} </td>
+				<td><a href="/opc/users/{{attempt.user.user.id}}">{{ attempt.user.user.username }}</a></td>
+				<td><a href="/opc/problems/{{attempt.question.id}}">{{ attempt.question.name }}</a> </td>
 				<td> {{ attempt.language.compiler }} </td>
 				<td> {{ attempt.error_status }} </td>
 				<td> {{ attempt.time_of_submit }} </td>

@@ -46,11 +46,14 @@ class RegistrationForm (forms.Manipulator):
     
     def isValidUsername (self, field_data, all_data):
         """ Checks if there is an already existing username and raises error if so"""
+        import datetime
         try:
             User.objects.get(username=field_data)
         except User.DoesNotExist:
             return
-        raise validators.ValidationError('The username "%s" is already taken.' % field_data)
+        if (user.is_active==True) or (user.user_profile.key_expires > datetime.datetime.today()) : 
+            #raise error only if the user is already active or the key hasn't expired yet
+            raise validators.ValidationError('The username "%s" is already taken.' % field_data)
 
     def isValidEmail (self, field_data, all_data):
         """ Checks if there is an already existing email and raises error if so"""
@@ -92,6 +95,7 @@ class LoginForm (forms.Manipulator):
 class SubmitSolution (forms.Manipulator):
     """ Submit form that will only have a file upload field to upload the solution. 
     The user identification will be held in the session information."""
+
     def __init__ (self):
         Qchoices = []
         Lchoices = []
@@ -123,12 +127,14 @@ class ForgotPassword (forms.Manipulator):
                             is_required=True,
                             validator_list=[self.userExists]),
                             )
+
     def userExists(self, field_data, all_data):
         """ Checks if a user by the username exists and raises and error if not """
         try:
             User.objects.get(username=field_data)
         except User.DoesNotExist:
             raise validators.ValidationError('The username "%s" is does not exist.' % field_data)
+
 
 class ChangePassword (forms.Manipulator):
     ''' Has old password and 2 new password fields. Requires the user to be authenticated.'''
@@ -150,6 +156,7 @@ class ChangePassword (forms.Manipulator):
                                                                                    'Passwords must match.')]),
             )
 
+
 class SearchQuery (forms.Manipulator):
     """ Search for Questions """
     def __init__ (self):
@@ -157,3 +164,52 @@ class SearchQuery (forms.Manipulator):
             forms.TextField (field_name='keywords',
                              length=30, maxlength=50,
                              is_required=True),)
+
+
+class ChangeDetails (forms.Manipulator):
+    ''' Change Membership details '''
+    
+    def __init__(self, user_id):
+        try:
+            self.original_object = User.objects.get(id=user_id)
+        except User.DoesNotExist:
+            from django.http import Http404
+            raise Http404
+        self.fields = (
+            forms.EmailField(field_name='email',
+                             length=30,
+                             maxlength=30,
+                             is_required=True,
+                             validator_list=[self.isValidUsername]),
+             forms.TextField(field_name='first_name',
+                             length=20, maxlength=20,
+                             is_required=True),                             
+             forms.TextField(field_name='last_name',
+                             length=20, maxlength=20,
+                             is_required=True),
+            )
+
+    def isValidEmail (self, field_data, all_data):
+        """ Checks if there is an already existing email and raises error if so"""
+        try:
+            User.objects.get(email=field_data)
+        except User.DoesNotExist:
+            return
+        raise validators.ValidationError('The email "%s" is already registered.' % field_data)
+        
+    def save(self, new_data):
+        """ Saves The user object into the database with score set to 0 and is_active set to false"""
+        self.original_object.first_name = new_data['first_name']
+        self.original_object.last_name = new_data['last_name']
+        self.original_object.email = new_data['email']
+        print 'Saving UserProfile updation' 
+        self.original_object.save()
+        return self.original_object
+
+    def flatten_data(self):
+        return {
+                'username' : self.original_object.username,
+                'email' : self.original_object.email,
+                'first_name' : self.original_object.first_name,
+                'last_name' : self.original_object.last_name,
+                }

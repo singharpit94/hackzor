@@ -1,3 +1,20 @@
+2007-01-16  Ravi Shankar <ravehanker@gmail.com>
+
+	* forms.py (RegistrationForm): Added code to recycle unactivated but
+	expired accounts
+	(ChangeDetails): Added
+	* models.py (Question): Added submission_limit
+	* urls.py: Changed home page to the template home.html
+	Change view from view_problem to django.views.generic.list_detail.object_detail
+	* views.py: Added CONTEST_START_TIME and CONTEST_END_TIME
+	(view_problem): removed displaying test_input
+	Added RequestContext to returning objects
+	(change_details): Added
+	(get_contest_times): Added as Context Processor
+	(register, confirm , forgot_password, change_password): Added RequestContext to returning objects
+	(change_password): Added code to implement submission_limit and to
+	restrict resubmission of accepted problems
+
 2006-12-15  Ravi Shankar <ravehanker@gmail.com>
 
 	* views.py (retrieve_attempt): Added code to Put Timed out object back in

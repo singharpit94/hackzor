@@ -6,11 +6,14 @@ from django.shortcuts import render_to_response, get_object_or_404
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate, logout
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 from django.views.generic.list_detail import object_list
+from django.views.decorators.cache import cache_page
 from django.db.models import Q
+from django.template import RequestContext 
 
 from hackzor import settings
 from hackzor.server.models import *
@@ -18,8 +21,19 @@ from hackzor.server.forms import *
 import hackzor.server.utils as utils
 import hackzor.evaluator.GPG as GPG
 
+import datetime
+
+#TODO: Find a better place to put CONTEST_START_TIME and CONTEST_END_TIME
+CONTEST_START_TIME = datetime.datetime(2007, 1, 14, 8, 30)
+CONTEST_END_TIME  = datetime.datetime(2007, 1, 14, 13, 30)
+
+
+def get_contest_times(request):
+    return {'CONTEST_START_TIME':CONTEST_START_TIME, 'CONTEST_END_TIME':CONTEST_END_TIME}
+
 def view_last_n_submissions (request, n, sort_by='time_of_submit', for_user=None):
     """ View to list the last n submissions sorted by the 'sort by' field """
+    #TODO: Check if sort_by really defaults to time_of_submit
     n = int(n)
     if for_user==None:
         submissions = Attempt.objects.order_by(sort_by)
@@ -43,18 +57,18 @@ def view_last_n_submissions (request, n, sort_by='time_of_submit', for_user=None
 def view_problem (request, id):
     """ Simple view to display view a particular problem 
     id : the primary key(id) of the Problem requested """
-    path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
+    #path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
     object = get_object_or_404(Question, id=id)
-    inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
+    #inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
     return render_to_response('view_problem.html',
-                              {'object':object })
+                              {'object':object }, RequestContext(request))
 
 def register(request):
     """ creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user"""
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
          return render_to_response('simple_message.html',
-                                   {'message' :"You are already registered.",})
+                                   {'message' :"You are already registered.",}, RequestContext(request))
 
     manipulator = RegistrationForm()
     
@@ -95,7 +109,7 @@ def register(request):
             return render_to_response('simple_message.html', 
                                       {'message' : 'A mail has been sent to ' +
                                        '%s. Follow the link in the mail to ' %(new_user.email)+
-                                       'activate your account',})
+                                       'activate your account',}, RequestContext(request))
                                        #'user' : request.user})
         else:
             print 'Errors'
@@ -103,8 +117,37 @@ def register(request):
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('register.html', 
-            {'form': form})
+            {'form': form}, RequestContext(request))
     #,'user':request.user})
+
+
+@login_required
+def change_details(request):
+    ''' Change details of existing users '''
+
+    manipulator = ChangeDetails(request.user.id)
+
+    if request.method == 'POST':
+        new_data = request.POST.copy()
+        print 'By post', new_data
+        errors = manipulator.get_validation_errors(new_data)
+        if not errors:
+            manipulator.do_html2python(new_data)
+            new_user = manipulator.save(new_data)
+            return render_to_response('simple_message.html',
+                {'message' : 'Your Details have been updated'}, RequestContext(request))
+        else:
+            print 'Errors'
+    else:
+        errors = {}
+        new_data = manipulator.flatten_data()
+        print new_data
+    form = forms.FormWrapper(manipulator, new_data, errors)
+    return render_to_response('change_profile.html',
+            {'form': form}, RequestContext(request))
+
+
+    return render_to_response('register.html', {'form':form}, RequestContext(request))
 
 
 def confirm (request, activation_key):
@@ -112,7 +155,7 @@ def confirm (request, activation_key):
     activation_key : The key created for the user during registration"""
     if request.user.is_authenticated():
         return render_to_response('simple_message.html',
-                {'message' : 'You are already registerd!'})
+                {'message' : 'You are already registerd!'}, RequestContext(request))
                 #{'user':request.user, 
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
@@ -123,13 +166,13 @@ def confirm (request, activation_key):
         u.delete()
         return render_to_response('simple_message.html',
                     {'message' : 'Your activation key has ' +
-                                   'expired. Please register again'})
+                                   'expired. Please register again'}, RequestContext(request))
     user_account = user_profile.user
     user_account.is_active = True
     user_account.save()
     return render_to_response('simple_message.html',
                 {'message' : 'Thou arth registered. Begin thy ' +
-                               'quest for glory!'})
+                               'quest for glory!'}, RequestContext(request))
 
 
 def logout_view (request):
@@ -140,7 +183,7 @@ def forgot_password(request):
     ''' Sends mail to user on reset passwords '''
     if request.user.is_authenticated():
         return render_to_response('simple_message.html', 
-                    {'message' : 'You already know your password. Use Change password to change your existing password'})
+                    {'message' : 'You already know your password. Use Change password to change your existing password'}, RequestContext(request))
 
     manipulator = ForgotPassword()
 
@@ -171,13 +214,13 @@ def forgot_password(request):
                       [u.email])
             
             return render_to_response('simple_message.html', 
-                        {'message' : 'A mail has been sent to %s with the new password' %(u.email) })
+                        {'message' : 'A mail has been sent to %s with the new password' %(u.email) }, RequestContext(request))
         else:
             print 'Errors'
     else:
         errors = new_data = {}
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('reset_password.html', {'form': form})
+    return render_to_response('reset_password.html', {'form': form}, RequestContext(request))
 
 @login_required
 def change_password(request):
@@ -192,10 +235,9 @@ def change_password(request):
             user = request.user
             if user.check_password(new_data['old_password']):
                 user.set_password(new_data['password1'])
-                #TODO: The Navibar goes crazy after this, find out the reason
                 user.save()
                 return render_to_response('simple_message.html',
-                        {'message' : 'Password Changed!'})
+                        {'message' : 'Password Changed!'}, RequestContext(request))
             else:
                     errors['old_password'].append('Old Password is incorrect')
         else: 
@@ -204,7 +246,7 @@ def change_password(request):
         errors = new_data = {}
 
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('change_password.html', {'form': form})
+    return render_to_response('change_password.html', {'form': form}, RequestContext(request))
 
 
 @login_required
@@ -223,10 +265,19 @@ def submit_code (request, problem_no=None):
             question = get_object_or_404(Question, id=new_data['question_id'])
             if len(content) > question.source_limit:
                 return render_to_response('simple_message.html',
-                            {'message' : 'Source Limit Exceeded. Code was NOT saved.'})
+                            {'message' : 'Source Limit Exceeded. Code was NOT saved.'}, RequestContext(request))
             
             user = get_object_or_404(UserProfile, user=request.user)
             language = get_object_or_404(Language, id=new_data['language_id'])
+
+            #TODO: Make all this a decorator and apply it only if defined in settings
+            if question in user.solved.all(): #If the user has already solved this problem
+                return render_to_response('simple_message.html',
+                        {'message' : 'You have already solved this problem. The current submission is ignored'}, RequestContext(request))
+            if user.attempt_set.filter(question=question).count()>question.submission_limit:
+                return render_to_response('simple_message.html',
+                        {'message' : 'You have exceeded your submission limit for this problem. The current submission is ignored'},
+                        RequestContext(request))
 
             attempt = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
             attempt.error_status = "Being Evaluated"
@@ -235,7 +286,7 @@ def submit_code (request, problem_no=None):
             pending.save()
 
             return render_to_response('simple_message.html',
-                        {'message' : 'Code Submitted!'})
+                        {'message' : 'Code Submitted!'}, RequestContext(request))
         else:
             print errors
     else:
@@ -244,7 +295,7 @@ def submit_code (request, problem_no=None):
             new_data = MultiValueDict({'question_id':[problem_no]})
 
     form = forms.FormWrapper(manipulator, new_data, errors)
-    return render_to_response('submit_code.html', {'form': form})
+    return render_to_response('submit_code.html', {'form': form}, RequestContext(request))
 
 def search (request):
     """ Search Engine for the Questions"""

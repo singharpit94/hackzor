@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block content %}
+<form name="RegistrationForm" method="POST" action=".">
+    <table>
+
+        <h2> Displaying Information for {{ request.user.username }} </h2>
+
+        {% if form.first_name.errors %}
+        <tr>
+            <td>
+                *** {{ form.first_name.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
+       <tr>
+          <td><label for="id_first_name">First Name: </label></td>
+          <td>{{ form.first_name }}</td>
+       </tr>
+
+        {% if form.last_name.errors %}
+        <tr>
+            <td>
+                *** {{ form.last_name.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
+       <tr>
+          <td><lable for="id_last_name">Last Name: </label></td>
+          <td>{{ form.last_name }}</td>
+       </tr>
+
+        {% if form.email.errors %}
+        <tr>
+            <td>
+                *** {{ form.email.errors|join:", " }}
+            </td>
+        </tr>
+        {% endif %}
+
+       <tr>
+          <td><label for="id_email">Enter Email: </label></td>
+          <td>{{ form.email }}</td>
+       </tr>
+
+       <tr>
+         <td colspan=2><input type="submit" value="Update"></td>
+       </tr>
+    </table>
+    <p> Membership Information for Members 2 and 3 are optional.
+</form>
+{% endblock %}
