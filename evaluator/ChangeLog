@@ -1,3 +1,9 @@
+2007-01-17  Prashanth Mohan  <prashmohan@gmail.com>
+
+	* main.py: Implemented Logging functionality. Uses the logging
+	module of Python. Fixes Issue #1
+	(http://code.google.com/p/hackzor/issues/detail?id=1)
+
 2007-01-16  Prashanth Mohan  <prashmohan@gmail.com>
 
 	* main.py (Evaluator.run): Modified to return the

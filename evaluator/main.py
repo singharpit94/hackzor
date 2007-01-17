@@ -12,8 +12,8 @@ import cookielib
 import urllib2
 import resource
 import types
-import base64
 import StringIO
+import logging
 import xml.dom.minidom as minidom
 
 from settings import *
@@ -35,6 +35,7 @@ class XMLParser:
     NOTE: This class is not to be instantiated
     """
     obj = GPG.GPG()
+    logger = logging.getLogger('XML')
     def __init__(self):
         raise NotImplementedError('XMLParser class is not to be instantiated')
 
@@ -63,6 +64,7 @@ class XMLParser:
         |-- <id>value-to-be-returned</id>"""
         child_node = root.getElementsByTagName(id)
         if not child_node:
+            self.logger.critical('Invalid XML file: \n'+root.toxml())
             raise EvaluatorError('Invalid XML file')
         return self.dos2unix(self.decrypt(child_node[0].firstChild.nodeValue))
 
@@ -77,16 +79,18 @@ class XMLParser:
     
 class Question(XMLParser):
     """Defines the Characteristics of each question in the contest"""
+    logger = logging.getLogger('XML.Question')
     def __init__(self, qn, qid):
         input_data = self.get_val_by_id(qn, 'input-data')
         self.input_path = self.save_input_to_disk(input_data, qid)
-        # TODO: Consider grouping all the contraint variables inside a `Limit'
-        # class
         self.time_limit = float(self.get_val_by_id(qn, 'time-limit'))
         self.mem_limit = int(self.get_val_by_id(qn, 'mem-limit'))
         self.eval_path = self.save_eval_to_disk(qn, qid)
-        #print self.time_limit, self.mem_limit, self.eval_path
-
+        self.logger.info('Received New Question: Input Data - %s, Time Limit -' \
+                         ' %f, Memory Limit - %d, Evaluator - %s' %
+                         (self.input_path, self.time_limit, self.mem_limit,
+                          self.eval_path))        
+        
     def save_input_to_disk(self, input_data, qid):
         """Saves the input file to disk"""
         inp_path = os.path.join(INPUT_PATH, qid)
@@ -107,7 +111,6 @@ class Question(XMLParser):
         ev.write(evaluator)
         ev.seek(0)
         eval_file = open(eval_file_path, 'w')
-        base64.decode(ev, eval_file)
         eval_file.close()
         os.chmod(eval_file_path, 0700) # set executable permission for
                                        # code checker
@@ -129,6 +132,7 @@ class Questions(XMLParser):
 
 class Attempt(XMLParser):
     """Each Attempt XML file is parsed by this class"""
+    logger = logging.getLogger('XML.Attempt')
     def __init__(self, xml_file):
         xml = minidom.parseString(xml_file)
         attempt = xml.getElementsByTagName('attempt')
@@ -140,7 +144,9 @@ class Attempt(XMLParser):
         self.code = self.get_val_by_id(attempt, 'code')
         self.lang = self.get_val_by_id(attempt, 'lang')
         self.file_name = self.get_val_by_id(attempt, 'file-name')
-
+        self.logger.info('Obtained an attempt: AID - %s, QID - %s, LANG - %s,'\
+                         ' FILENAME - %s' % (self.aid, self.qid, self.lang,
+                                             self.file_name))
 
     def convert_to_result(self, result, msg):
         """Converts an attempt into a corresponding XML file to notify result"""
@@ -154,6 +160,8 @@ class Attempt(XMLParser):
         if int(result) in rules.rules.keys():
             msg = rules.rules[int(result)]
         self.add_node(doc, root, 'error', msg)
+        self.logger.info('Attempt %s evaluated to \'%s\' with return value %s' %
+                         (self.aid, msg, result))
         print msg
         return doc.toxml()
         
@@ -161,8 +169,7 @@ class Attempt(XMLParser):
 class Evaluator:
     """Provides the base functions for evaluating an attempt.
     NOTE: This class is not to be instantiated"""
-    def __str__(self):
-        raise NotImplementedError('Must be Overridden')
+    logger = logging.getLogger('XML.Attempt')
 
     def compile(self, code_file, input_file):
         raise NotImplementedError('Must be Overridden')
@@ -203,6 +210,7 @@ class Evaluator:
         print 'Running: ', cmd
         print 'Memory limit: ', mem_limit
         print 'Time limit: ', time_limit
+        self.logger.info('Executing command: ' + cmd)
         # TODO: pass the input file as a parameter to exec.py too
         p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
         while True:
@@ -210,7 +218,7 @@ class Evaluator:
                 inp.close()
                 # TODO: Try to execute the KILL code internall with no
                 # dependancies
-                print 'pgreping for '+os.path.basename(cmd)
+                self.logger.info('pgreping for '+os.path.basename(cmd))
                 status, psid = commands.getstatusoutput('pgrep -f '+os.path.basename(cmd))
 
                 psid = psid.splitlines()
@@ -219,19 +227,20 @@ class Evaluator:
                                         # case of a python TLE
                 if psid == '':
                     print 'oO Problems of problems. Kill manually'
+                    self.logger.critical('No Process ID to be killed. Look into '\
+                                         'this manually')
                     psid = [p.pid]
                 for proc in psid:
-                    print 'Killing psid '+proc
+                    self.logger.info('Killing psid '+proc)
                     try:
                         os.kill (int(proc), signal.SIGKILL)
                     except OSError:
                         pass # process does not exist
-                print 'Killed Process Tree: '+str(p.pid)
+                self.logger.info('Killed Process Tree: %d' % p.pid)
                 raise EvaluatorError('Time Limit Expired')
             elif p.poll() != None:
                 break
             time.sleep(PS_POLL_INTVL)
-        print 'Return Value: ', p.returncode
         if p.returncode == 139:
             raise EvaluatorError('Run-Time Error. Received SIGSEGV')
         elif p.returncode == 137:
@@ -239,7 +248,6 @@ class Evaluator:
         elif p.returncode == 143:
             raise EvaluatorError('Run-Time Error. Received SIGKILL')
         elif p.returncode != 0 :
-            print p.returncode
             raise EvaluatorError('Run-Time Error. Unknown Error')
         else:
             output_file.file.flush()
@@ -266,24 +274,28 @@ class Evaluator:
         # main class name. So having a workaround. The attempts are saved
         #(for archival purposes only) and java files are also saved in a
         # temporary directory called java
-        if attempt.lang.lower() == JAVA_TEMP_DIR:
+        if attempt.lang.lower() == 'java':
             save_loc = os.path.join(JAVA_TEMP_DIR, attempt.file_name)
+            self.logger.info('Java Submission. Saving file with original name '\
+                             'to ' + save_loc)
             code_file = self.save_file(save_loc, attempt.code)
 
         # Compile the File
+        self.logger.info('Compiling Attempt ' + attempt.aid)
         exec_file = self.compile(code_file)
         cmd = self.get_run_cmd(exec_file)
         # Execute the file for preset input
-        try:
+        try: 
             output = self.run(cmd, quest)
         except:
-            if self.is_compiled():  # TODO: replace this with a
-                                        # variable in settings.py
+            if self.is_compiled():
+                self.logger.info('Removing Object File: ' + exec_file)
                 os.remove(exec_file)
             raise
         if self.is_compiled():
+            self.logger.info('Removing Object File: ' + exec_file)
             os.remove(exec_file)
-        # Match the output to expected output
+        self.logger.info('Running Output Checker')
         return self.check(attempt, output, quest.eval_path)
 
     def check(self, attempt, output, eval_path):
@@ -469,7 +481,9 @@ class Client:
 #         for keys in self.obj.list_keys():
 #             if keys['fingerprint'] == imp['fingerprint']:
 #                 return keys['keyid']
-        
+    def __del__(self):
+        logging.shutdown()
+    
     def read_page(self, website):
         cj = cookielib.CookieJar()
         cookie_opener = urllib2.build_opener(urllib2.HTTPCookieProcessor(cj))
@@ -516,16 +530,20 @@ class Client:
         return urllib2.urlopen(r).read()
         
     def start(self):
+        logger = logging.getLogger('Client')
+        logger.info('Evaluator Started')
+        logger.info('Waiting for attempts from '+CONTEST_URL)
         print 'Evaluator Started'
         while True:
             try:
-                print 'Waiting for Attempt'
+                logger.info('Waiting for Attempt')
                 attempt = self.get_attempt()
             except urllib2.HTTPError:
                 attempt = None  # No attempts in web server queue to evaluate
                 time.sleep(TIME_INTERVAL)
                 continue
             # Evaluate the attempt
+            logger.info('Obtained an Attempt. Starting Evaluation')
             try:
                 return_value = self.evaluate(attempt, self.question_set.questions[str(attempt.qid)])
                 msg = ''
@@ -533,9 +551,17 @@ class Client:
                 print 'EvaluatorError: '
                 msg = sys.exc_info()[1].error
                 return_value = 3
+                logger.exception('Exception Occured. Return Value is 3')
             print 'Final Result: ', return_value, msg
             print self.submit_attempt(attempt.convert_to_result(return_value, msg))
         return return_value
 if __name__ == '__main__':
-    gpg = GPG.GPG()
+    if len(sys.argv) >= 2:
+        log_file = sys.argv[1]
+    else:
+        log_file = 'hackzor.log'
+    logging.basicConfig(level=logging.DEBUG,
+                        format='%(asctime)s %(levelname)s %(message)s',
+                        filename=log_file,
+                        filemode='w')
     Client().start()
