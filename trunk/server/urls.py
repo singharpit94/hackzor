@@ -35,14 +35,11 @@ urlpatterns = patterns('',
         (r'^problems/submit/$',
             'hackzor.server.views.submit_code',),
 
-        # Search page
-        (r'^search/',
-         'hackzor.server.views.search',),
-
         # TOP 10 list
         (r'^top10/$',
             'django.views.generic.list_detail.object_list',
-            { 'queryset' : UserProfile.objects.filter(user__is_active=True).order_by('-score')[:10], 'template_name' : 'view_toppers.html' }),
+            { 'queryset' : UserProfile.objects.filter(user__is_active=True).order_by('-score')[:10], 
+                'template_name' : 'view_toppers.html', 'allow_empty': True}),
 
         # Last n submits 
         (r'^submits/last(?P<n>\d+)(/orderby/(?P<sort_by>(-)?\w+))?(/(?P<for_user>\w+))?/',

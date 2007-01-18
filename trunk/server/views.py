@@ -271,7 +271,7 @@ def submit_code (request, problem_no=None):
             language = get_object_or_404(Language, id=new_data['language_id'])
 
             #TODO: Make all this a decorator and apply it only if defined in settings
-            if question in user.solved.all(): #If the user has already solved this problem
+            if question in [a.question for q in user.solved.all()]: #If the user has already solved this problem
                 return render_to_response('simple_message.html',
                         {'message' : 'You have already solved this problem. The current submission is ignored'}, RequestContext(request))
             if user.attempt_set.filter(question=question).count()>question.submission_limit:
@@ -296,43 +296,6 @@ def submit_code (request, problem_no=None):
 
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form}, RequestContext(request))
-
-def search (request):
-    """ Search Engine for the Questions"""
-    beenthere=False
-    result = []
-    if request.GET:
-        beenthere=True
-        data = request.GET.copy()
-        keywords = data.getlist ('search_text')[0]
-        if keywords:
-            keywords = keywords.split()
-            #TODO: Exclude Staff accounts in Search
-            questions_results = Question.objects.filter( 
-                    Q(text__icontains=keywords[0]) | Q(name__icontains=keywords[0]) )
-            user_results = User.objects.filter(
-                    Q(username__icontains=keywords[0]) | Q(first_name__icontains=keywords[0])| Q(last_name__icontains=keywords[0] ) )
-
-            for k in keywords[1:]:
-                questions_results = questions_results.filter( 
-                        Q(text__icontains=k) | Q(name__icontains=k) )
-                user_results = user_results.filter(
-                        Q(username__icontains=keywords) | Q(first_name__icontains=keywords)| Q(last_name__icontains=keywords ) )
-                if questions_results.count() == 0 and user_results.count() == 0:
-                    break
-            result = list(questions_results)
-            result.extend(list(user_results))
-
-    return object_list(request, 
-            paginate_by=10, #TODO: Remove Hard coding in paginate_by
-                template_name='view_submissions.html', 
-                allow_empty=True,
-                template_object_name = 'result',
-                queryset = restult)
-    #return render_to_response('search_result.html', 
-            #{'beenthere':beenthere, 'result':result})
-
-
 
 def retrieve_attempt (request, key_id):
     """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""

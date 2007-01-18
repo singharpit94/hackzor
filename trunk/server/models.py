@@ -9,8 +9,9 @@ class Question(models.Model):
     text = models.TextField()
     # TODO: Input testcases are visible to the user, put them into some safe place 
     # TODO: Make the test_input and evaluator_path a part of the database, rather than as files
-    test_input = models.FileField(upload_to = 'hidden/evaluators/testCases')
-    evaluator_path = models.FileField(upload_to = 'hidden/evaluators/pyCode/')
+    test_input = models.TextField()
+    expected_output = models.TextField()
+    evaluator_code = models.TextField()
     score = models.IntegerField()
     time_limit = models.FloatField(max_digits=3, decimal_places = 1)
     memory_limit = models.PositiveIntegerField()
@@ -40,7 +41,7 @@ class UserProfile(models.Model):
     activation_key = models.CharField(maxlength=40)
     key_expires = models.DateTimeField() 
     user = models.OneToOneField(User)
-    solved = models.ManyToManyField(Question)
+    solved = models.ManyToManyField("Attempt")
 
     class Admin: pass
 
