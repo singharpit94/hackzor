@@ -1,6 +1,7 @@
 2006-12-04  Ravi Shankar <ravehanker@gmail.com>
 
-	* search_result.html: corrected links to users
+	* base.html: removed link to search
+	* search_result.html: Removed
 	* view_toppers.html: Added Rank as an extra column and paginated the
 	links. Pagination works when enabled from view
 	* home.html, change_profile.html, 404.html, 500.html: Added

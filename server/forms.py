@@ -48,12 +48,13 @@ class RegistrationForm (forms.Manipulator):
         """ Checks if there is an already existing username and raises error if so"""
         import datetime
         try:
-            User.objects.get(username=field_data)
+            user=User.objects.get(username=field_data)
+            print user,field_data
+            if (user.is_active==True) or (user.userprofile.key_expires > datetime.datetime.today()) : 
+                #raise error only if the user is already active or the key hasn't expired yet
+                raise validators.ValidationError('The username "%s" is already taken.' % field_data)
         except User.DoesNotExist:
             return
-        if (user.is_active==True) or (user.user_profile.key_expires > datetime.datetime.today()) : 
-            #raise error only if the user is already active or the key hasn't expired yet
-            raise validators.ValidationError('The username "%s" is already taken.' % field_data)
 
     def isValidEmail (self, field_data, all_data):
         """ Checks if there is an already existing email and raises error if so"""

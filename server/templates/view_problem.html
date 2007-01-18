@@ -3,12 +3,30 @@
 {% block title %} {{ block.super }} - Problem {{object.id}} - {{object.name}} {% endblock %}
 
 {% block content %} 
-	<p>
-	{% comment %}
-	 TODO: Add other fields like submission limit here 
-	{% endcomment %}
+	<div id="problem_header" style="text-align:center;font-weight:bold">
+		<table align=center>
+		<tr><td colspan=2><h2> {{object.name}} </h2></td></tr>
+		<h3> 
+		<tr>
+			<td align="right">Time Limit :</td>			
+			<td align="left">{{object.time_limit}} second{{object.time_limit|pluralize}}</td>
+		</tr>
+		<tr>
+			<td align="right">Memory Limit :</td>	
+			<td align="left">{{object.memory_limit}} byte{{object.memory_limit|pluralize}}</td>
+		</tr>
+		<tr>
+			<td align="right">Source Limit :</td>		
+			<td align="left">{{object.source_limit}}  byte{{object.source_limit|pluralize}}</td>
+		</tr>
+		<tr>
+			<td align="right">Submission Limit :</td>	
+			<td align="left">{{object.submission_limit}} submit{{object.submission_limit|pluralize}}</td>
+		</tr>
+		</h3> 
+		</table>
+	</div>
 	{{object.text}}
-	</p>
 	{% comment %}
 	<h1> {{object.name}} </h1>
     Points - {{ object.score }}

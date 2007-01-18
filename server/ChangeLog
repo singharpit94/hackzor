@@ -1,12 +1,15 @@
 2007-01-16  Ravi Shankar <ravehanker@gmail.com>
 
+	* base.html: Removed link to search
 	* forms.py (RegistrationForm): Added code to recycle unactivated but
 	expired accounts
 	(ChangeDetails): Added
 	* models.py (Question): Added submission_limit
 	* urls.py: Changed home page to the template home.html
+	removed search
 	Change view from view_problem to django.views.generic.list_detail.object_detail
 	* views.py: Added CONTEST_START_TIME and CONTEST_END_TIME
+	(search): removed
 	(view_problem): removed displaying test_input
 	Added RequestContext to returning objects
 	(change_details): Added
