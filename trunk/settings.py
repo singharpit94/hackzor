@@ -1,4 +1,7 @@
+import os, datetime
 # Django settings for hackzor project.
+
+# TODO: Prepare a general Doc on configuring settings.py before the start of a contest
 
 DEBUG = True
 TEMPLATE_DEBUG = DEBUG
@@ -63,7 +66,8 @@ ROOT_URLCONF = 'hackzor.urls'
 TEMPLATE_DIRS = (
     # Put strings here, like "/home/html/django_templates".
     # Always use forward slashes, even on Windows.
-    'hackzor/server/templates',
+    # Path is relative to the path of the current file
+    os.path.join(os.path.basename(__file__), 'server', 'templates'),
 )
 
 TEMPLATE_CONTEXT_PROCESSORS = (
@@ -85,23 +89,30 @@ INSTALLED_APPS = (
 
 AUTH_PROFILE_MODULE = 'server.UserProfile' 
 
+SESSION_COOKIE_AGE =1800
+
+#For Cache
+# Caching might create problems with individual pages. Make the site per-view cached
+CACHE_BACKEND = 'locmem:///'
+#CACHE_MIDDLEWARE_SECONDS = 10
+#CACHE_MIDDLEWARE_KEY_PREFIX = ''
+
+################################################################################
+#                     Hackzor Specific Information                            ##
+################################################################################
+
 # Replace with the name of your own contest
 CONTEST_NAME = 'Hackzor' 
 # replace with the email of your own contest
 CONTEST_EMAIL = 'hackzor@googlegroups.com' 
 
-# replace with the url of your own contest
-                               # evaluator/settings.py
-CONTEST_URL = 'localhost:8000' # should typically be the same as in
+# Replace with the url of your own contest. Should be the same as in evaluator/settings.py
+CONTEST_URL = 'localhost:8000' 
 
-SESSION_COOKIE_AGE =1800
+# This is that time, in seconds, for which the attempt can live in
+# BeingEvaluated before it is moved back to TobeEvaluated
+ATTEMPT_TIMEOUT = 60 
 
-# This is that time that will be given before the attempt it retrieved will be
-# moved back to TobeEvaluated
-ATTEMPT_TIMEOUT = 60 # In Seconds
-
-#For Cache
-# Caching might create problems with individual pages. Make the site per-view cached
-#CACHE_BACKEND = 'simple:///'
-#CACHE_MIDDLEWARE_SECONDS = 10
-#CACHE_MIDDLEWARE_KEY_PREFIX = ''
+# Contest Time Details
+CONTEST_START_TIME = datetime.datetime(2007, 3, 18, 14, 00)
+CONTEST_END_TIME  = datetime.datetime(2007, 3, 18, 19, 00)
