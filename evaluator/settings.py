@@ -10,13 +10,13 @@ JAVA_LINK_STR = 'gcj --main=%i -o %o %i.o'
 CSHARP_COMPILE_STR = 'gmcs \'%i\' -out:\'%o\''
 
 WORK_DIR = 'work_files'
-TIME_INTERVAL = 20 # Time between poll to web server for attempts (in seconds)
+TIME_INTERVAL = 5 # Time between poll to web server for attempts (in seconds)
 EVALUATOR_PATH = 'evaluators'
 INPUT_PATH = 'input'
 JAVA_TEMP_DIR = 'java'
 
 CONTEST_URL = 'http://localhost:8000' 
-SERVER_KEYID = '7BA8167980D27132' # Enter the server's Public Key ID
+SERVER_KEYID = '2AFA8B44D275E2D4' # Enter the server's Public Key ID
                                       
 PS_POLL_INTVL = 0.1 # Time between each poll of the process to check if process
                     # has completed or should be killed

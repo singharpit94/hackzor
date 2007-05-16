@@ -1,3 +1,8 @@
+2007-05-16  Ravi Shankar <ravehanker@gmail.com>
+
+	* view_user.html: Fixed reference bug in Solved listing
+	* base.html: Changed Indentation structure
+
 2006-12-04  Ravi Shankar <ravehanker@gmail.com>
 
 	* base.html: removed link to search

@@ -49,12 +49,13 @@ class XMLParser:
         based on the private key of the recipient, so the keyid is not
         required.
         """
-        if type(value) == types.ListType:
-            ret_val = []
-            for val in value:
-                ret_val.append(self.obj.decrypt(val, always_trust=True))
-            return ret_val
-        return self.obj.decrypt(value, always_trust=True).data
+        return value
+        #if type(value) == types.ListType:
+        #    ret_val = []
+        #    for val in value:
+        #        ret_val.append(self.obj.decrypt(val, always_trust=True))
+        #    return ret_val
+        #return self.obj.decrypt(value, always_trust=True).data
     
     def get_val_by_id(self, root, id):
         """This function will get the value of the `id' child node of
@@ -72,7 +73,7 @@ class XMLParser:
         """ Used to add a text node 'child' with the value of 'value'(duh..)
         """
         node = doc.createElement(child)
-        value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
+        #value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
         node.appendChild(doc.createTextNode(value))
         root.appendChild(node)
 
@@ -523,7 +524,7 @@ class Client:
         """
         host = CONTEST_URL
         selector = self.submit_attempt_url
-        attempt_xml = self.obj.sign(attempt_xml).data
+        #attempt_xml = self.obj.sign(attempt_xml).data
         headers = {'Content-Type': 'application/xml',
                    'Content-Length': str(len(attempt_xml))}
         r = urllib2.Request(self.submit_attempt_url, data=attempt_xml, headers=headers)

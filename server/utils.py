@@ -1,7 +1,6 @@
 from hackzor.server.models import *
 from hackzor import settings
 import xml.dom.minidom as minidom
-import xml.dom.ext as ext
 import os, pickle, tempfile
 import hackzor.evaluator.GPG as GPG
 import types
@@ -14,8 +13,9 @@ def queue_not_empty ():
     return False
 
 def encrypt(value, keyid):
-    global obj
-    return obj.encrypt(value, keyid, always_trust=True).data
+    return value
+    #global obj
+    # return obj.encrypt(value, keyid, always_trust=True).data
     
 def add_node (doc, root, child, value, keyid):
     """ Used to add a text node 'child' with the value of 'value' (duh..) """
@@ -82,7 +82,7 @@ def get_question_set_as_xml(keyid):
         # Convert evaluator (May be binary) into pickled data and send along
         # with xml
         data = StringIO.StringIO()
-        inp = open(os.path.join(settings.MEDIA_ROOT, qn.evaluator_path), 'r')
+        inp = open(os.path.join(settings.MEDIA_ROOT, qn.judge_path), 'r')
         inp_data = inp.read()
         inp.close()
         pickle.dump(inp_data, data)
@@ -121,15 +121,16 @@ def get_result(xmlised_result):
     return (aid, result, error_status)
 
 def decrypt(data):
+    return data
     #print 'inside decrypt', data
-    global obj
-    if type(data) == types.ListType:
-        ret_val = []
-        for d in data:
-            ret_val.append(obj.decrypt(d).data)
-        return ret_val
-    data = str(data)
-    return obj.decrypt(data, always_trust=True).data
+    #global obj
+    #if type(data) == types.ListType:
+    #    ret_val = []
+    #    for d in data:
+    #        ret_val.append(obj.decrypt(d).data)
+    #    return ret_val
+    #data = str(data)
+    #return obj.decrypt(data, always_trust=True).data
 
     # catch error. UnExpected Type
 
