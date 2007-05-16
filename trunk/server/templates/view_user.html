@@ -15,8 +15,8 @@
 			</tr>
 		{% for prob in object.userprofile.solved.all %}
 			<tr>
-				<td> <a href="/opc/problems/{{ prob.id }}"> {{ prob.name }}	</a></td>
-				<td> {{ prob.score }} </td>
+				<td> <a href="/opc/problems/{{ prob.question.id }}"> {{ prob.question.name }}	</a></td>
+				<td> {{ prob.question.score }} </td>
 			</tr>
 		{% endfor %}
 	</table>

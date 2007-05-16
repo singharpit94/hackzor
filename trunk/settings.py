@@ -12,7 +12,7 @@ ADMINS = (
 
 MANAGERS = ADMINS
 
-DATABASE_ENGINE = 'mysql'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
+DATABASE_ENGINE = 'sqlite3'           # 'postgresql', 'mysql', 'sqlite3' or 'ado_mssql'.
 DATABASE_NAME = 'hackzor'       # Or path to database file if using sqlite3.
 DATABASE_USER = 'opc'             # Not used with sqlite3.
 DATABASE_PASSWORD = 'opcadmin'         # Not used with sqlite3.
@@ -59,6 +59,7 @@ MIDDLEWARE_CLASSES = (
     #'django.middleware.cache.CacheMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.middleware.doc.XViewMiddleware',
+    #'django.middleware.gzip.GZipMiddleware',
 )
 
 ROOT_URLCONF = 'hackzor.urls'
@@ -93,8 +94,8 @@ SESSION_COOKIE_AGE =1800
 
 #For Cache
 # Caching might create problems with individual pages. Make the site per-view cached
-CACHE_BACKEND = 'locmem:///'
-#CACHE_MIDDLEWARE_SECONDS = 10
+#CACHE_BACKEND = 'locmem:///?timeout=5'
+#CACHE_MIDDLEWARE_SECONDS = 5
 #CACHE_MIDDLEWARE_KEY_PREFIX = ''
 
 ################################################################################
@@ -111,7 +112,7 @@ CONTEST_URL = 'localhost:8000'
 
 # This is that time, in seconds, for which the attempt can live in
 # BeingEvaluated before it is moved back to TobeEvaluated
-ATTEMPT_TIMEOUT = 60 
+ATTEMPT_TIMEOUT = 10
 
 # Contest Time Details
 CONTEST_START_TIME = datetime.datetime(2007, 3, 18, 14, 00)

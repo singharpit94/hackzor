@@ -11,7 +11,6 @@ from django.http import HttpResponseRedirect, HttpResponse, Http404
 from django.core.mail import send_mail
 from django.utils.datastructures import MultiValueDict
 from django.views.generic.list_detail import object_list
-from django.views.decorators.cache import cache_page
 from django.db.models import Q
 from django.template import RequestContext 
 
@@ -23,28 +22,54 @@ import hackzor.evaluator.GPG as GPG
 
 import datetime
 
-#TODO: Find a better place to put CONTEST_START_TIME and CONTEST_END_TIME
-CONTEST_START_TIME = datetime.datetime(2007, 1, 14, 8, 30)
-CONTEST_END_TIME  = datetime.datetime(2007, 1, 14, 13, 30)
+#TODO: Fix Models to rank properly
+#TODO: Make a decorator to change permissions for veiws based on Contest timings
 
-
+#TODO: Not tested yet. Need to make changes
 def get_contest_times(request):
-    return {'CONTEST_START_TIME':CONTEST_START_TIME, 'CONTEST_END_TIME':CONTEST_END_TIME}
+    contest_done = False
+    anytime_now = ''
+    if settings.CONTEST_START_TIME > datetime.datetime.now():
+        display_time = settings.CONTEST_START_TIME
+        display_tense = 'start'
+        if display_time-datetime.datetime.now() < datetime.timedelta(0,  60):
+            anytime_now = '< 1 minute'
+    elif settings.CONTEST_END_TIME > datetime.datetime.now():
+        display_time = settings.CONTEST_END_TIME
+        display_tense = 'end'
+        if display_time-datetime.datetime.now() < datetime.timedelta(0,  60):
+            anytime_now = '< 1 minute'
+    else:
+        display_time = ''
+        display_tense = ''
+        contest_done = True
+    return {'CONTEST_START_TIME':settings.CONTEST_START_TIME, 'CONTEST_END_TIME':settings.CONTEST_END_TIME, 
+            'DISPLAY_TIME':display_time, 'DISPLAY_TENSE':display_tense, 'CONTEST_DONE':contest_done, 
+            'ANYTIME_NOW':anytime_now}
 
-def view_last_n_submissions (request, n, sort_by='time_of_submit', for_user=None):
-    """ View to list the last n submissions sorted by the 'sort by' field """
-    #TODO: Check if sort_by really defaults to time_of_submit
+def view_last_n_submissions (request, n, sort_by=None, for_user=None):
+    ''' View to list the last n submissions sorted by the 'sort by' field '''
+    #TODO: Breaks if sort_by is intentionally passed None(which happens) 
+    # remove default parameter value and check if sort_by has allowed values
+    # A Better way would be to handle exceptions
     n = int(n)
+    fields = tuple([field.name for field in Attempt._meta.fields])
+    if (sort_by == None): sort_by='-time_of_submit'
+    elif sort_by[0]=='-':
+        if sort_by[1:] not in fields: raise Http404
+    else:
+        if sort_by not in fields: raise Http404
+
     if for_user==None:
         submissions = Attempt.objects.order_by(sort_by)
-        for_user=""
+        for_user=''
     else:
         try:
             user = User.objects.get(username__iexact=for_user).userprofile
             submissions = Attempt.objects.filter(user__exact=user).order_by(sort_by)
         except User.DoesNotExist:
-            #submissions = Attempt.objects.order_by(sort_by)[:n]
             submissions = Attempt.objects.order_by(sort_by)
+
     return object_list(request, 
                 paginate_by=n, 
                 template_name='view_submissions.html', 
@@ -52,23 +77,20 @@ def view_last_n_submissions (request, n, sort_by='time_of_submit', for_user=None
                 allow_empty=True,
                 template_object_name = 'submissions',
                 queryset = submissions)
-    #return render_to_response('view_submissions.html',{'submissions':submissions, 'n' : n, 'for_user':for_user})
 
 def view_problem (request, id):
-    """ Simple view to display view a particular problem 
-    id : the primary key(id) of the Problem requested """
-    #path_to_media_prefix = os.path.join(os.getcwd(), settings.MEDIA_ROOT)
+    ''' Simple view to display view a particular problem 
+    id : the primary key(id) of the Problem requested '''
     object = get_object_or_404(Question, id=id)
-    #inp = open(os.path.join(path_to_media_prefix , object.test_input)).read().split('\n')
     return render_to_response('view_problem.html',
                               {'object':object }, RequestContext(request))
 
 def register(request):
-    """ creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user"""
+    ''' creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user'''
     if request.user.is_authenticated():
          # They already have an account; don't let them register again
          return render_to_response('simple_message.html',
-                                   {'message' :"You are already registered.",}, RequestContext(request))
+                                   {'message' :'You are already registered.',}, RequestContext(request))
 
     manipulator = RegistrationForm()
     
@@ -93,7 +115,7 @@ def register(request):
             new_profile.save()
 
             # Send an email with the confirmation link
-            # TODO: Store the message in a seperate file or DB
+            # TODO: Store this message in a template
             email_subject = 'Your new Hackzor account confirmation'
             email_body = ('Hello, %s, and thanks for signing up for an %s ' %(request.user.username, settings.CONTEST_NAME) +
                           'account!\n\nTo activate your account, click this' +
@@ -121,6 +143,62 @@ def register(request):
     #,'user':request.user})
 
 
+# TODO: Untested/Unchecked Code. May meed rewrite
+def activate_account(request):
+    ''' creates an inactive account by using the manipulator for the non-existant user and sends a confirm link to the user'''
+    if request.user.is_authenticated():
+         # They already have an account; don't let them register again
+         return render_to_response('simple_message.html',
+                                   {'message' :'You are already logged in.',}, RequestContext(request))
+
+    manipulator = ActivateAccount()
+    
+    if request.POST:
+        new_data = request.POST.copy()
+        errors = manipulator.get_validation_errors(new_data)
+        if not errors:
+            # Save the user
+            user = manipulator.get_user(new_data)
+            # Build the activation key for their account
+            salt = sha.new(str(random.random())).hexdigest()[:5]
+            activation_key = sha.new(salt+user.username).hexdigest()
+            key_expires = datetime.datetime.today() + datetime.timedelta(2)
+            userprofile = user.userprofile
+            userprofile.activation_key = activation_key
+            userprofile.key_expires = key_expires
+            userprofile.save()
+
+            # Send an email with the confirmation link
+            # TODO: Store the message in a seperate file or DB
+            email_subject = 'Your new %s account confirmation' %(settings.CONTEST_NAME)
+            email_body = ('Hello %s,\n ' %(user.username ) +
+                          'You have requested for an activation mail at %s. You can activate your account by following the ' %(settings.CONTEST_NAME)+
+                          'link below within 48 hours.\n\n ' +
+                          'http://%s/accounts/confirm/%s \n' %( settings.CONTEST_URL, user.userprofile.activation_key) +
+                           '\n Best of luck for %s!\n\nRegards,\n%s Team' %(settings.CONTEST_NAME, settings.CONTEST_NAME))
+            
+            send_mail(email_subject,
+                      email_body,
+                      settings.CONTEST_EMAIL,
+                      [user.email])
+            
+            return render_to_response('simple_message.html', 
+                                      {'message' : 'A mail has been sent to ' +
+                                       '%s. Follow the link in the mail to ' %(user.email)+
+                                       'activate your account<br />'+
+                                       '<span class="bold">Note :</span>If you think your confirmation mail has not arrived, please check your Spam/Bulk'+
+                                       ' before contacting us.',
+                                       }, RequestContext(request))
+                                       #'user' : request.user})
+        else:
+            print 'Errors'
+    else:
+        errors = new_data = {}
+    form = forms.FormWrapper(manipulator, new_data, errors)
+    return render_to_response('activate.html', 
+            {'form': form}, RequestContext(request))
+    #,'user':request.user})
+
 @login_required
 def change_details(request):
     ''' Change details of existing users '''
@@ -137,7 +215,7 @@ def change_details(request):
             return render_to_response('simple_message.html',
                 {'message' : 'Your Details have been updated'}, RequestContext(request))
         else:
-            print 'Errors'
+            print 'Errors at change_details :', errors
     else:
         errors = {}
         new_data = manipulator.flatten_data()
@@ -151,19 +229,20 @@ def change_details(request):
 
 
 def confirm (request, activation_key):
-    """ Activates an inactivated account 
-    activation_key : The key created for the user during registration"""
+    ''' Activates an inactivated account 
+    activation_key : The key created for the user during registration'''
     if request.user.is_authenticated():
         return render_to_response('simple_message.html',
                 {'message' : 'You are already registerd!'}, RequestContext(request))
-                #{'user':request.user, 
     user_profile = get_object_or_404(UserProfile,
                                      activation_key=activation_key)
     #TODO : Prevent attacks by resetting the key when activated
     if user_profile.key_expires < datetime.datetime.today():
-        u = user_profile.user
-        user_profile.delete();
-        u.delete()
+        # TODO: Dangerous Thing to do! If a user submits through an
+        # expired account, account gets deleted!
+        # u = user_profile.user
+        # user_profile.delete();
+        # u.delete()
         return render_to_response('simple_message.html',
                     {'message' : 'Your activation key has ' +
                                    'expired. Please register again'}, RequestContext(request))
@@ -176,6 +255,7 @@ def confirm (request, activation_key):
 
 
 def logout_view (request):
+    ''' Logs out user and redirects to home page '''
     logout(request)
     return HttpResponseRedirect('/opc/')
 
@@ -251,8 +331,8 @@ def change_password(request):
 
 @login_required
 def submit_code (request, problem_no=None):
-    """ Handles Submitting problem. Gets User identity from sessions. requires an authenticated user
-    problem_no : The primary key(id) of the problem for which the code is being submitted """
+    ''' Handles Submitting problem. Gets User identity from sessions. requires an authenticated user
+    problem_no : The primary key(id) of the problem for which the code is being submitted '''
     manipulator = SubmitSolution()
 
     if request.POST:
@@ -271,7 +351,7 @@ def submit_code (request, problem_no=None):
             language = get_object_or_404(Language, id=new_data['language_id'])
 
             #TODO: Make all this a decorator and apply it only if defined in settings
-            if question in [a.question for q in user.solved.all()]: #If the user has already solved this problem
+            if question in [a.question for a in user.solved.all()]: #If the user has already solved this problem
                 return render_to_response('simple_message.html',
                         {'message' : 'You have already solved this problem. The current submission is ignored'}, RequestContext(request))
             if user.attempt_set.filter(question=question).count()>question.submission_limit:
@@ -280,7 +360,8 @@ def submit_code (request, problem_no=None):
                         RequestContext(request))
 
             attempt = Attempt (user = user, question=question, code=content, language=language, file_name=request.FILES['file_path']['filename'])
-            attempt.error_status = "Being Evaluated"
+            attempt.error_status = 'Being Evaluated'
+            attempt.result = False
             attempt.save()
             pending = ToBeEvaluated (attempt=attempt)
             pending.save()
@@ -288,7 +369,7 @@ def submit_code (request, problem_no=None):
             return render_to_response('simple_message.html',
                         {'message' : 'Code Submitted!'}, RequestContext(request))
         else:
-            print errors
+            print 'Errors at submit_code: ',errors
     else:
         errors = new_data = {}
         if problem_no:
@@ -298,7 +379,7 @@ def submit_code (request, problem_no=None):
     return render_to_response('submit_code.html', {'form': form}, RequestContext(request))
 
 def retrieve_attempt (request, key_id):
-    """ Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated"""
+    ''' Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated'''
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     from hackzor.settings import ATTEMPT_TIMEOUT
     from datetime import datetime
@@ -318,32 +399,32 @@ def retrieve_attempt (request, key_id):
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
 
 def retrieve_question_set (request, key_id):
-    """ Get the list of questions  as XML"""
+    ''' Get the list of questions  as XML'''
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     question_set_xmlised = utils.get_question_set_as_xml(key_id)
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
 
 def submit_attempt (request, key_id):
-    """ Get evaluated result and update DB """
+    ''' Get evaluated result and update DB '''
     if request.POST:
         xml_data = request.raw_post_data
-        global obj
-        try:
-            xml_data = obj.verify(xml_data).data
-        except:
-            print 'Error'
-            return HttpResponse('Error!')
+        #global obj
+        #try:
+        #    xml_data = obj.verify(xml_data).data
+        #except:
+        #    print 'Error at submit_attempt'
+        #    return HttpResponse('Error!')
         aid, result, error_status = utils.get_result(xml_data)
         print aid, result, error_status
         attempt = get_object_or_404(Attempt, id=aid)
-        attempt.verified(int(result)>0, error_status)
+        attempt.verified(int(result) == 0, error_status)
         attempt_in_being_evaluated = BeingEvaluated.objects.get(attempt=attempt)
         attempt_in_being_evaluated.delete()
     return HttpResponse('Done!')
 
 def get_pub_key(request):
-    """Returns the Public Key of the web server"""
+    '''Returns the Public Key of the web server'''
     # TODO: Use this function
     global obj
     return HttpResponse(obj.showpubkey())

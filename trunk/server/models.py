@@ -1,6 +1,5 @@
 import os, datetime
 from django.contrib.auth.models import User 
-from django.views.decorators.cache import cache_page
 from django.db import models
 import hackzor.evaluator.GPG as GPG
 from hackzor.server.country_choices import country_choices 
@@ -56,7 +55,6 @@ class UserProfile(models.Model):
             self.score += evaluated_attempt.question.score
             self.save()
 
-    @cache_page(3)
     def get_total_submission_time(self):
         ''' Returns sum of time taken to solve all correct problems with respect to 
             the start of the contest'''

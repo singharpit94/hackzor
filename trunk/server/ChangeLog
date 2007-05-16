@@ -1,3 +1,34 @@
+2007-05-16  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py (activate_account): Added
+	* views.py (view_last_n_submissions): Better error checking for sort_by
+	values
+	* views.py (submit_attempt): Removed Encryption to fix build
+	* utils.py (encrypt, decrypt): Removed Encryption to fix build
+	* utils.py (get_question_set_as_xml): Changed name for evaluator_path to
+	judge_path to fix bug
+
+2007-04-07  Ravi Shankar <ravehanker@gmail.com>
+
+	* models.py: Changed all " to ' in quoting strings
+	Added Verbose names to fields where necessary
+	* models.py (UserProfile, Language, Attempt): Cleaned up structure with
+		1) classes are seperated by 2 lines 
+		2) Attributes are grouped and placed first. 
+		3) Class header, attributes and functions are seperated by a single	space 
+	* models.py (Question, UserProfile, Attempt): Changed Doc strings
+
+	* models.py (UserProfile): Added organization, contact_address and country
+	importing hackzor.server.country_choices accordingly
+	* models.py (Question): Changed evaluator_path to judge_path
+	* models.py (UserProfile.solves): Changed problem to evaluated_attempt
+	Fixed Broken code by assuming correctly	that 'problem' (now evaluated_attempt)
+	is an instance of Attempt, rather than question
+	* models.py (Attempt.verified): Fixed bug by passing self rather than 
+	self.question to self.user.solves
+	* models.py (UserProfile.get_total_submission_time): Added to build
+	* country_choices.py: Added to build
+
 2007-01-16  Ravi Shankar <ravehanker@gmail.com>
 
 	* base.html: Removed link to search
