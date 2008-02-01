@@ -18,7 +18,6 @@ import xml.dom.minidom as minidom
 
 from settings import *
 import rules
-import GPG
 
 class EvaluatorError(Exception):
     def __init__(self, error, value=''):
@@ -34,29 +33,14 @@ class XMLParser:
     to be parsed
     NOTE: This class is not to be instantiated
     """
-    obj = GPG.GPG()
     logger = logging.getLogger('XML')
     def __init__(self):
         raise NotImplementedError('XMLParser class is not to be instantiated')
 
     def dos2unix(self, data):
         """Converts text from DOS CRLF to UNIX LF"""
-        from string import join, split
-        return join(split(data, '\r\n'), '\n')
+        return data.replace('\r\n', '\n')
 
-    def decrypt(self, value):
-        """Converts the obtained cipher text into clear text. Decrypting is
-        based on the private key of the recipient, so the keyid is not
-        required.
-        """
-        return value
-        #if type(value) == types.ListType:
-        #    ret_val = []
-        #    for val in value:
-        #        ret_val.append(self.obj.decrypt(val, always_trust=True))
-        #    return ret_val
-        #return self.obj.decrypt(value, always_trust=True).data
-    
     def get_val_by_id(self, root, id):
         """This function will get the value of the `id' child node of
         `root' node. `root' should be of type DOM Element. e.g.
@@ -67,13 +51,12 @@ class XMLParser:
         if not child_node:
             self.logger.critical('Invalid XML file: \n'+root.toxml())
             raise EvaluatorError('Invalid XML file')
-        return self.dos2unix(self.decrypt(child_node[0].firstChild.nodeValue))
+        return self.dos2unix(child_node[0].firstChild.nodeValue)
 
     def add_node(self, doc, root, child, value):
         """ Used to add a text node 'child' with the value of 'value'(duh..)
         """
         node = doc.createElement(child)
-        #value = self.obj.encrypt(value, SERVER_KEYID, always_trust=True).data
         node.appendChild(doc.createTextNode(value))
         root.appendChild(node)
 
@@ -106,7 +89,7 @@ class Question(XMLParser):
         save it into a file in the directory `evaluators' in the name of the
         question id"""
         # Save the pickled Evaluator binary to disk
-        evaluator = self.decrypt(qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue)
+        evaluator = qn.getElementsByTagName('evaluator')[0].firstChild.nodeValue
         eval_file_path = os.path.join(EVALUATOR_PATH, qid)
         ev = StringIO.StringIO()
         ev.write(evaluator)
@@ -454,34 +437,15 @@ class Client:
                   'java':Java_Evaluator, 'python':Python_Evaluator,
                   'ruby':Ruby_Evaluator, 'php':PHP_Evaluator,
                   'perl':Perl_Evaluator, 'csharp':CSharp_Evaluator}
-    obj = GPG.GPG()
     def __init__(self):
-        fpr = self.obj.fingerprints()[0]
-        for key in self.obj.list_keys():
-            if key['fingerprint'] == fpr:
-                key_id = key['keyid']
-        root_url = CONTEST_URL + '/opc/evaluator/'+key_id
+        from settings import EVALUATOR_KEYID
+        root_url = CONTEST_URL + '/opc/evaluator/'+EVALUATOR_KEYID
         self.get_attempt_url = root_url + '/getattempt/'
         self.submit_attempt_url = root_url + '/submitattempt/'
         self.get_qns = root_url + '/getquestionset/'
         self.get_pub_key = root_url + '/getpubkey/'
         self.question_set = Questions(self.read_page(self.get_qns))
-        # TODO: Get Pub Key automatically from the server
-#         global SERVER_KEYID
-#         server_key = self.read_page(self.get_pub_key)
-#         SERVER_KEYID = self.import_key(server_key)
 
-# Uncomment the below region when automatic retreival of Public key is implemented
-#     def import_key(self, key):
-#         """This will import the Server's public key to the local PGP keyring"""
-#         try:
-#             imp = self.obj.import_key(key)
-#         except KeyError:
-#             print 'Unable to import'
-#             return # TODO: Should it fail here?
-#         for keys in self.obj.list_keys():
-#             if keys['fingerprint'] == imp['fingerprint']:
-#                 return keys['keyid']
     def __del__(self):
         logging.shutdown()
     

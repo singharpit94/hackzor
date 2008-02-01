@@ -1,3 +1,18 @@
+2008-02-01  Ravi Shankar <ravehanker@gmail.com>
+
+	* views.py (retrieve_attempt, retrieve_question_set, submit_attempt): Adding Simple key authentication and
+	removed keyid from utils.get_question_set_as_xml calls
+	* views.py (submit_attempt):  Removed Commmented GPG code
+	* utils.py (queue_not_empty): Fixed Comparison bug
+	* utils.py (encrypt, decrypt): Removed method and removed corresponding calls in
+	other methods
+	* utils.py (add_node, dequeue_attempts, get_attempt_as_xml,
+	get_question_set_as_xml): Changed method signature to remove keyid 
+	* models.py(PGP): removed
+	* models.py (EvalKey): Added new model for simple authentication
+	* settings.py: set DATABASE_USER and DATABASE_PASSWORD to '' since default
+	database is sqlite3
+
 2007-05-16  Ravi Shankar <ravehanker@gmail.com>
 
 	* views.py (activate_account): Added

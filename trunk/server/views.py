@@ -18,7 +18,6 @@ from hackzor import settings
 from hackzor.server.models import *
 from hackzor.server.forms import *
 import hackzor.server.utils as utils
-import hackzor.evaluator.GPG as GPG
 
 import datetime
 
@@ -378,8 +377,14 @@ def submit_code (request, problem_no=None):
     form = forms.FormWrapper(manipulator, new_data, errors)
     return render_to_response('submit_code.html', {'form': form}, RequestContext(request))
 
+###################
+## Evaluator API ##
+###################
+
 def retrieve_attempt (request, key_id):
     ''' Get an attempt to be evaluated as an XML and delete it from ToBeEvaluated'''
+
+    get_object_or_404(EvalKey, key=key_id)
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
     from hackzor.settings import ATTEMPT_TIMEOUT
     from datetime import datetime
@@ -393,28 +398,25 @@ def retrieve_attempt (request, key_id):
             to_be_eval_attempt = ToBeEvaluated(attempt=attempt)
             to_be_eval_attempt.save()
         else: break
-    attempt_xmlised = utils.get_attempt_as_xml(key_id)
-    if not attempt_xmlised:
-        raise Http404
+    attempt_xmlised = utils.get_attempt_as_xml()
+    if not attempt_xmlised: raise Http404
     return HttpResponse (content = attempt_xmlised, mimetype = 'application/xml')
 
 def retrieve_question_set (request, key_id):
     ''' Get the list of questions  as XML'''
+
+    get_object_or_404(EvalKey, key=key_id)
     # TODO: Enable RSA/<some-other-pub-key-crypto> based auth here
-    question_set_xmlised = utils.get_question_set_as_xml(key_id)
+    question_set_xmlised = utils.get_question_set_as_xml()
     return HttpResponse (content = question_set_xmlised, 
             mimetype = 'application/xml')
 
 def submit_attempt (request, key_id):
     ''' Get evaluated result and update DB '''
+
+    get_object_or_404(EvalKey, key=key_id)
     if request.POST:
         xml_data = request.raw_post_data
-        #global obj
-        #try:
-        #    xml_data = obj.verify(xml_data).data
-        #except:
-        #    print 'Error at submit_attempt'
-        #    return HttpResponse('Error!')
         aid, result, error_status = utils.get_result(xml_data)
         print aid, result, error_status
         attempt = get_object_or_404(Attempt, id=aid)
@@ -422,13 +424,3 @@ def submit_attempt (request, key_id):
         attempt_in_being_evaluated = BeingEvaluated.objects.get(attempt=attempt)
         attempt_in_being_evaluated.delete()
     return HttpResponse('Done!')
-
-def get_pub_key(request):
-    '''Returns the Public Key of the web server'''
-    # TODO: Use this function
-    global obj
-    return HttpResponse(obj.showpubkey())
-
-obj = GPG.GPG()
-# Adding global variable for better performance. TODO: Contemplate moving this
-# inside the respective functions

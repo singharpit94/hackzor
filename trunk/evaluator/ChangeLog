@@ -1,3 +1,13 @@
+2008-02-01  Ravi Shankar <ravehanker@gmail.com>
+
+	* settings.py: Removed SERVER_KEYID and added EVALUATOR_KEYID
+	* main.py (XMLParser): Removing GPG object
+	* main.py (XMLParser.dos2unix): Changed dos2unix to use string replace
+	* main.py (XMLParser.decrypt): Removed function and it's corresponding
+	calls in other methods
+	* main.py (Client.__init__): Moving from GPG to simple key authentication
+	* main.py: Removed commented function import_key
+
 2007-05-16  Ravi Shankar <ravehanker@gmail.com>
 
 	* main.py (XMLParser.decrypt, XMLParser.add_node
