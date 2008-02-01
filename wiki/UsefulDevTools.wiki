@@ -1,4 +1,4 @@
-#summary Useful Dev Tools List  of developer tools that are useful to the project
+#summary List of developer tools that are useful to the project
 #labels Featured
 
 == VIm ==
@@ -11,5 +11,3 @@
 
 == Other tools ==
   * [http://ipython.scipy.org/ IPython]
-
-
