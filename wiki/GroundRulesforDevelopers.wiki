@@ -7,8 +7,10 @@
   * *Always* get your code peer reviewed before submitting
   * Send a diff of your changes when requesting the code review
   * If you don't know who will review your code, just send it to the group
-  * If you're sending it to someone if particular, put his address in the To field and CC the group
+  * If you're sending it to someone in particular, put his address in the To field and CC the group
   * Always do a reply-to-all when replying to reviews
+  * svn submit messages should always be meaningful
+  * Add a (CR reviewer_id) to the submit message when submitting
   * You only take on issues in the [http://code.google.com/p/hackzor/issues/list issue-tracker] and work on it.
   * If you want to work on something else, create a [http://code.google.com/p/hackzor/issues/entry new issue] for it
   * Keep updating the issues to reflect their current status
