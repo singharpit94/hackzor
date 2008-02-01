@@ -1,7 +1,6 @@
 import os, datetime
 from django.contrib.auth.models import User 
 from django.db import models
-import hackzor.evaluator.GPG as GPG
 from hackzor.server.country_choices import country_choices 
 
 class Question(models.Model):
@@ -128,23 +127,8 @@ class BeingEvaluated(models.Model):
     attempt = models.ForeignKey (Attempt)
     time_of_retrieval = models.DateTimeField(auto_now_add=True)
 
-class PGP(models.Model):
+class EvalKey(models.Model):
     ''' Contains Key details about Evaluators '''
 
-    PGPkey = models.TextField(blank=False)
-    keyid = models.CharField(maxlength=8, editable=False)
-
-    def save(self):
-        obj = GPG.GPG()
-        ret = obj.import_key(self.PGPkey)
-        if ret.unchanged + ret.imported <= 0 or not ret.results:
-            # TODO: Problem if key is already imported. Correct This
-            return
-        for keys in obj.list_keys():
-            if keys['fingerprint'] == ret.results[0]['fingerprint']:
-                # TODO: Support multiple key imports                                        
-                self.keyid = keys['keyid']
-                # This is to call the 'real' Save function
-                super(PGP, self).save()
-
     class Admin:pass
+    key = models.CharField(maxlength=8, verbose_name="Pass Key for the evaluator")

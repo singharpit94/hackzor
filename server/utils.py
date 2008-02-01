@@ -2,48 +2,37 @@ from hackzor.server.models import *
 from hackzor import settings
 import xml.dom.minidom as minidom
 import os, pickle, tempfile
-import hackzor.evaluator.GPG as GPG
 import types
 import StringIO, sys
 
 def queue_not_empty ():
     """ Checks if the ToBeEvaluated queue is empty or not """
-    if ToBeEvaluated.objects.count > 0:
+    if ToBeEvaluated.objects.count() > 0:
         return True
     return False
 
-def encrypt(value, keyid):
-    return value
-    #global obj
-    # return obj.encrypt(value, keyid, always_trust=True).data
-    
-def add_node (doc, root, child, value, keyid):
+def add_node (doc, root, child, value):
     """ Used to add a text node 'child' with the value of 'value' (duh..) """
     node = doc.createElement(child)
-    try:
-        value = encrypt(value, keyid)
-    except:
-        print 'Could not encrypt value'
-        value = ''
     node.appendChild(doc.createTextNode(value))
     root.appendChild(node)
     
-def convert_attempt_to_xml (attempt, keyid):
+def convert_attempt_to_xml (attempt):
     """ Converts an attempt into an equivalent XML file """
     doc = minidom.Document()
     root = doc.createElementNS('http://code.google.com/p/hackzor', 'attempt')
     doc.appendChild(root)
     if not attempt:
         return ext.Print (doc)
-    add_node(doc, root, 'qid', str(attempt.question.id), keyid)
-    add_node(doc, root, 'aid', str(attempt.id), keyid) # aid = Attempt id
-    add_node(doc, root, 'code', str(attempt.code), keyid)
-    add_node(doc, root, 'lang', str(attempt.language.compiler), keyid)
-    add_node(doc, root, 'file-name', str(attempt.file_name), keyid)
+    add_node(doc, root, 'qid', str(attempt.question.id))
+    add_node(doc, root, 'aid', str(attempt.id)) # aid = Attempt id
+    add_node(doc, root, 'code', str(attempt.code))
+    add_node(doc, root, 'lang', str(attempt.language.compiler))
+    add_node(doc, root, 'file-name', str(attempt.file_name))
     # return ext.Print (doc) # use ext.PrettyPrint when debugging
     return doc.toxml()
     
-def dequeue_attempts(keyid):
+def dequeue_attempts():
     """ Returns an attempt from the ToBeEvaluated queue based on priority
     algorithms or return None if queue is empty """
     try:
@@ -53,18 +42,18 @@ def dequeue_attempts(keyid):
         # TODO: The attempt exists in both queues at this point of
         # time. Rectify.
         attempt.delete()
-        return convert_attempt_to_xml(to_be_eval.attempt, keyid)
+        return convert_attempt_to_xml(to_be_eval.attempt)
     except IndexError:
         return None
 
-def get_attempt_as_xml(keyid):
+def get_attempt_as_xml():
     if queue_not_empty():
-        return dequeue_attempts(keyid)
+        return dequeue_attempts()
     else:
         print "Attempt Queue Empty"
         return None
 
-def get_question_set_as_xml(keyid):
+def get_question_set_as_xml():
     qn_set = Question.objects.all()
     doc = minidom.Document()
     root = doc.createElementNS('http://code.google.com/p/hackzor',
@@ -74,10 +63,10 @@ def get_question_set_as_xml(keyid):
         node = doc.createElement('question')
         node.setAttribute('id', str(qn.id))
         root.appendChild(node)
-        add_node(doc, node, 'time-limit', str(qn.time_limit), keyid)
-        add_node(doc, node, 'mem-limit', str(qn.memory_limit), keyid)
+        add_node(doc, node, 'time-limit', str(qn.time_limit))
+        add_node(doc, node, 'mem-limit', str(qn.memory_limit))
         inp = open(os.path.join(settings.MEDIA_ROOT,qn.test_input), 'r')
-        add_node(doc, node, 'input-data', inp.read(), keyid)
+        add_node(doc, node, 'input-data', inp.read())
         inp.close()
         # Convert evaluator (May be binary) into pickled data and send along
         # with xml
@@ -87,7 +76,7 @@ def get_question_set_as_xml(keyid):
         inp.close()
         pickle.dump(inp_data, data)
         data.seek(0)
-        cdata = doc.createCDATASection(encrypt(data.read(), keyid))
+        cdata = doc.createCDATASection(data.read())
         eval_node = doc.createElement('evaluator')
         node.appendChild(eval_node)
         eval_node.appendChild(cdata)
@@ -99,7 +88,7 @@ def get_val_by_id (root, id):
     if not child_node:
         print 'Invalid XML file'
         raise EvaluatorError('Invalid XML file')
-    return decrypt(child_node[0].firstChild.nodeValue)
+    return child_node[0].firstChild.nodeValue
 
 def get_result(xmlised_result):
     """Each Attempt XML file is parsed by this class"""
@@ -119,20 +108,3 @@ def get_result(xmlised_result):
     else:
         error_status="Accepted"
     return (aid, result, error_status)
-
-def decrypt(data):
-    return data
-    #print 'inside decrypt', data
-    #global obj
-    #if type(data) == types.ListType:
-    #    ret_val = []
-    #    for d in data:
-    #        ret_val.append(obj.decrypt(d).data)
-    #    return ret_val
-    #data = str(data)
-    #return obj.decrypt(data, always_trust=True).data
-
-    # catch error. UnExpected Type
-
-obj = GPG.GPG() # created global to avoid creation for each call of
-                # encrypt. TODO: Reconsider moving into some module later on

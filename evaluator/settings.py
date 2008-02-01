@@ -16,7 +16,7 @@ INPUT_PATH = 'input'
 JAVA_TEMP_DIR = 'java'
 
 CONTEST_URL = 'http://localhost:8000' 
-SERVER_KEYID = '2AFA8B44D275E2D4' # Enter the server's Public Key ID
+EVALUATOR_KEYID = 'Bleh'
                                       
 PS_POLL_INTVL = 0.1 # Time between each poll of the process to check if process
                     # has completed or should be killed
