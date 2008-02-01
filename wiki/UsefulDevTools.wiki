@@ -1,0 +1,15 @@
+#summary Useful Dev Tools List  of developer tools that are useful to the project
+#labels Featured
+
+== VIm ==
+  * [http://www.vim.org/scripts/script.php?script_id=922 svncommand]
+  * [http://www.vim.org/scripts/script.php?script_id=1631 gnuchangelog]
+
+== Firefox ==
+  * [https://addons.mozilla.org/en-US/firefox/addon/1843 Firebug]
+  * [https://addons.mozilla.org/en-US/firefox/addon/60 Web Developer]
+
+== Other tools ==
+  * [http://ipython.scipy.org/ IPython]
+
+
