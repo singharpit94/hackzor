@@ -1,3 +1,10 @@
+2008-02-03  Ravi Shankar <ravehanker@gmail.com>
+
+	* main.py (Evaluator.run): Removed calling Popen on ./exec.py and
+	implemented explicit forking and exec. Added os.setpgrp() to the child to
+	set the process group for cascading kills thereby, fixing TLE kills
+	* exec.py: deleted and moved functionality into main.py
+
 2008-02-01  Ravi Shankar <ravehanker@gmail.com>
 
 	* settings.py: Removed SERVER_KEYID and added EVALUATOR_KEYID

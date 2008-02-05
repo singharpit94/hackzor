@@ -103,7 +103,7 @@ def get_result(xmlised_result):
     #print xml.toprettyxml()
     aid = get_val_by_id(attempt, 'aid')
     result = get_val_by_id(attempt, 'result')
-    if (int(result) == 0) :
+    if (int(result) != 0) :
         error_status = get_val_by_id(attempt, 'error')
     else:
         error_status="Accepted"

@@ -1,3 +1,7 @@
+2008-02-03  Ravi Shankar <ravehanker@gmail.com>
+
+	* utils.py (get_result): Fixed bug is checking for result
+
 2008-02-01  Ravi Shankar <ravehanker@gmail.com>
 
 	* views.py (retrieve_attempt, retrieve_question_set, submit_attempt): Adding Simple key authentication and
