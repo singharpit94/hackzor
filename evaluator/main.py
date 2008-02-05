@@ -182,60 +182,59 @@ class Evaluator:
         """Execute the command `cmd' and returns the execution output file
         descriptor in a tempfile.NamedTemporaryFile() object.
         """
-        input_file = quest.input_path
+
         output_file = tempfile.NamedTemporaryFile()
-        # subprocess will not accept StringIO objects
-        inp = open (input_file, 'r')
-        kws = {'shell':True, 'stdin':inp, 'stdout':output_file.file}
-        start_time = time.time()
         mem_limit = quest.mem_limit + self.get_additional_mem()
         time_limit = quest.time_limit + self.get_additional_time()
+
         # TODO: Convert all these print statements in logging files
         print 'Running: ', cmd
         print 'Memory limit: ', mem_limit
         print 'Time limit: ', time_limit
+
+        pid = os.fork()
+        if pid==0:
+            input_file = open(quest.input_path, 'r')
+
+            os.dup2(input_file.fileno(), sys.stdin.fileno())
+            os.dup2(output_file.fileno(), sys.stdout.fileno())
+            os.setpgrp()
+            resource.setrlimit(resource.RLIMIT_AS, (mem_limit, mem_limit))
+            resource.setrlimit(resource.RLIMIT_NPROC, (0,0))
+            # TODO: Correct the Maximum No of open Files! Currently not working
+            # no_of_files = 3
+            # resource.setrlimit(resource.RLIMIT_NOFILE, (no_of_files, no_of_files))
+            try:
+                os.execv(cmd,[os.path.basename(cmd)])
+            finally:
+                print 'execv failed!!'
+                sys.exit(1)
+
+        start_time = time.time()
         self.logger.info('Executing command: ' + cmd)
-        # TODO: pass the input file as a parameter to exec.py too
-        p = subprocess.Popen('./exec.py '+str(quest.mem_limit)+' '+cmd, **kws)
+        print 'pid :'+str(pid)
+        print 'gid :'+str(os.getpgid(pid))
+
         while True:
             if time.time() - start_time >= quest.time_limit:
-                inp.close()
-                # TODO: Try to execute the KILL code internall with no
-                # dependancies
-                self.logger.info('pgreping for '+os.path.basename(cmd))
-                status, psid = commands.getstatusoutput('pgrep -f '+os.path.basename(cmd))
-
-                psid = psid.splitlines()
-                if os.getpid() in psid:
-                    psid.remove(os.getpid()) # do not kill evaluator itself in
-                                        # case of a python TLE
-                if psid == '':
-                    print 'oO Problems of problems. Kill manually'
-                    self.logger.critical('No Process ID to be killed. Look into '\
-                                         'this manually')
-                    psid = [p.pid]
-                for proc in psid:
-                    self.logger.info('Killing psid '+proc)
-                    try:
-                        os.kill (int(proc), signal.SIGKILL)
-                    except OSError:
-                        pass # process does not exist
-                self.logger.info('Killed Process Tree: %d' % p.pid)
+                os.killpg(pid, 9)
+                temp, returncode =  os.waitpid(pid, 0)
+                print temp, returncode
+                self.logger.info('Killed Process Tree: %d' % pid)
                 raise EvaluatorError('Time Limit Expired')
-            elif p.poll() != None:
-                break
+            else:
+                temp, returncode =  os.waitpid(pid, os.WNOHANG)
+                if (temp, returncode) != (0, 0): break
             time.sleep(PS_POLL_INTVL)
-        if p.returncode == 139:
-            raise EvaluatorError('Run-Time Error. Received SIGSEGV')
-        elif p.returncode == 137:
-            raise EvaluatorError('Run-Time Error. Received SIGTERM')
-        elif p.returncode == 143:
-            raise EvaluatorError('Run-Time Error. Received SIGKILL')
-        elif p.returncode != 0 :
-            raise EvaluatorError('Run-Time Error. Unknown Error')
-        else:
-            output_file.file.flush()
-            output_file.file.seek(0)
+        error_results = { 
+                139: EvaluatorError('Run-Time Error. Received SIGSEGV'),
+                137: EvaluatorError('Run-Time Error. Received SIGTERM'),
+                143: EvaluatorError('Run-Time Error. Received SIGKILL')
+                }
+        default_error = EvaluatorError('Run-Time Error. Unknown Error with return code '+str(returncode))
+        if returncode!=0 : raise error_results.get(returncode, default_error)
+        output_file.file.flush()
+        output_file.file.seek(0)
         return output_file
 
     def save_file(self, file_path, contents):

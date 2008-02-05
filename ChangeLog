@@ -1,3 +1,7 @@
+2008-02-03  Ravi Shankar <ravehanker@gmail.com>
+
+	* settings.py: Changing default db path to ../hackzor.db
+
 2007-04-06  Ravi Shankar <ravehanker@gmail.com>
 
 	* settings.py: Made template dir path relative to path of settings.py
