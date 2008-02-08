@@ -1,0 +1,11 @@
+#summary Common Hackzor lingo
+#labels Featured
+
+=== Server ===
+ The django application hackzor.server, that's housed within [http://code.google.com/p/hackzor/source/browse/trunk/server hackzor/server] ||
+=== Evaluator ===
+ The python application that is responsible for compiling user submits and judging them using problem-specific [#Judge judge]
+=== Judge ===
+ A special program specified for each question, that will be responsible for judging the correctness of user-submitted solutions
+=== Hackzor ===
+ _No_ idea what it means! [http://code.google.com/u/prashmohan/ prashmohan] came up with the name
