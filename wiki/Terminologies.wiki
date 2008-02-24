@@ -8,4 +8,5 @@
 === Judge ===
  A special program specified for each question, that will be responsible for judging the correctness of user-submitted solutions
 === Hackzor ===
- _No_ idea what it means! [http://code.google.com/u/prashmohan/ prashmohan] came up with the name
+ [http://code.google.com/u/prashmohan/ prashmohan] came up with the name
+ Meaning at [http://www.urbandictionary.com/define.php?term=hackzor Urban Dictionary]
