@@ -16,8 +16,11 @@
   * If you want to work on something else, create a [http://code.google.com/p/hackzor/issues/entry new issue] for it
   * Keep updating the issues to reflect their current status
   * Always keep all communication regarding the task withing the issue tracker to maintain history on the task
+  * Keep the updating the Changelogs when submiting
+
 
 
 == Dont's ==
   * Until said otherwise, all code reviews should either go through [http://code.google.com/u/ravehanker/ ravehanker] or [http://code.google.com/u/prashmohan prashmohan]
   * Do not have email conversations regarding tasks (unless they're not relevant to the task :) Discuss them in the issue tracker itself
+  * NEVER send your code for a review before testing it. period.
