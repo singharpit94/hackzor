@@ -1,3 +1,8 @@
+2008-03-09  Ravi Shankar <ravehanker@gmail.com>
+
+	* utils.py (dequeue_attempts): Modified code to make attempts FIFO
+	* models.py (UserProfile): Changed 'solved' to blank=True to make it addable from Admin console
+
 2008-02-03  Ravi Shankar <ravehanker@gmail.com>
 
 	* utils.py (get_result): Fixed bug is checking for result

@@ -35,8 +35,10 @@ def convert_attempt_to_xml (attempt):
 def dequeue_attempts():
     """ Returns an attempt from the ToBeEvaluated queue based on priority
     algorithms or return None if queue is empty """
+
     try:
-        attempt = ToBeEvaluated.objects.all()[0]
+        # Couldn't use order_by since django had a bug in order_by when doing cross table lookups
+        attempt = ToBeEvaluated.objects.select_related().order_by('server_attempt.time_of_submit')[0]
         to_be_eval = BeingEvaluated(attempt=attempt.attempt)
         to_be_eval.save()
         # TODO: The attempt exists in both queues at this point of
