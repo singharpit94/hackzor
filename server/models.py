@@ -36,7 +36,7 @@ class UserProfile(models.Model):
     activation_key = models.CharField(maxlength=40)
     key_expires = models.DateTimeField(verbose_name='Expiry date-time for Key') 
     user = models.OneToOneField(User)
-    solved = models.ManyToManyField('Attempt', verbose_name='Succesful Attempts')
+    solved = models.ManyToManyField('Attempt', verbose_name='Succesful Attempts', blank=True)
     country = models.CharField(maxlength=30, choices=country_choices)
     organization = models.CharField(verbose_name='Organization/Institution', maxlength=30)
     contact_address = models.TextField()
