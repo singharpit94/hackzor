@@ -10,7 +10,7 @@
   * If you're sending it to someone in particular, put his address in the To field and CC the group
   * Always do a reply-to-all when replying to reviews
   * Codereview requests should have meaningful subjects
-  * svn submit messages should be of the format "<msg> (CR <reviewer>)" where <msg> was the subject of the code review request mail and <reviewer> is the id of the reviewer
+  * svn submit messages should be of the format `<msg> (CR <reviewer>)` where `<msg>` was the subject of the code review request mail and `<reviewer>` is the id of the reviewer
   * Always update your code (and resolve any clashes) before making a submit
   * You only take on issues in the [http://code.google.com/p/hackzor/issues/list issue-tracker] and work on it.
   * If you want to work on something else, create a [http://code.google.com/p/hackzor/issues/entry new issue] for it
@@ -24,4 +24,4 @@
   * NEVER send your code for a review before testing it. period.
 
 == Testing ==
-No Automated Testing available yet. See [[http://code.google.com/p/hackzor/wiki/SampleQuestionSetForTesting Sample Question Set]] for manual testing 
+No Automated Testing available yet. See [http://code.google.com/p/hackzor/wiki/SampleQuestionSetForTesting Sample Question Set] for manual testing 
