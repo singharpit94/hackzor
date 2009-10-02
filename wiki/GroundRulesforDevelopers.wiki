@@ -19,10 +19,7 @@
   * Keep the updating the Changelogs when submiting
 
 
-
-
 == Dont's ==
-  * Until said otherwise, all code reviews should either go through [http://code.google.com/u/ravehanker/ ravehanker] or [http://code.google.com/u/prashmohan prashmohan]
   * Do not have email conversations regarding tasks (unless they're not relevant to the task :) Discuss them in the issue tracker itself
   * NEVER send your code for a review before testing it. period.
 
